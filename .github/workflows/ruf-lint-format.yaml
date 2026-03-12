@@ -1,0 +1,21 @@
+name: Ruff Lint Check
+
+on:
+  pull_request:
+    branches:
+      - '*'
+
+jobs:
+  ruf-lint-format:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up UV
+        uses: astral-sh/setup-uv@v6
+
+      - name: Run ruff lint
+        run: |
+          uv run --only-group lint ruff check
