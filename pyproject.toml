@@ -1,14 +1,10 @@
 [project]
-name = "sdx-fastapi-boilerlate"
-version = "0.2.20"
-description = "A boilerplate for a FastAPI service"
+name = "sdx-loader"
+version = "0.1.0"
+description = "A service for loading new sds schemas and datasets"
 requires-python = "==3.13.*"
 dependencies = [
-    "fastapi>=0.115.12",
-    "pyyaml>=6.0.2",
     "sdx-base>=0.2.9",
-    "typer>=0.15.3",
-    "toml>=0.10.2",
 ]
 
 [dependency-groups]
