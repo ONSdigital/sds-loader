@@ -16,7 +16,11 @@ class SdsSchemaRequestProtocol(Protocol):
         ...
 
 
-class SchemaRepository(SchemaRepositoryInterface):
+class SdsSchemaRepository(SchemaRepositoryInterface):
+    """
+    An implementation of a schema repository interface
+    talking to the SDS API
+    """
     def __init__(self, schema_repository: SdsSchemaRequestProtocol):
         self.schema_repository = schema_repository
 

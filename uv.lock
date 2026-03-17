@@ -737,6 +737,19 @@ wheels = [
 ]
 
 [[package]]
+name = "lagom"
+version = "2.7.7"
+source = { registry = "https://pypi.org/simple" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/6d/c8/97b6a333d27c87a5c0973e40ed2cc51d0020166e940b48113b5a32fa52e1/lagom-2.7.7-cp313-cp313-macosx_11_0_arm64.whl", hash = "sha256:36961c52a8debcc122ebc5caece4bdca7cf6c1cdf07159e17b84913259b386bd", size = 143912, upload-time = "2025-07-16T11:18:31.78Z" },
+    { url = "https://files.pythonhosted.org/packages/87/ce/13bc7a3175d22abbf31729e0fc13a98a15e91bda3a750ac1fe8826edb242/lagom-2.7.7-cp313-cp313-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:a446273396437774a3defff5a9baa4e0d88c9bad4e9cf318d98748005f5a6c57", size = 263228, upload-time = "2025-07-16T11:21:05.066Z" },
+    { url = "https://files.pythonhosted.org/packages/f0/ef/032329df600bf41fa030b88898425643ae3965e747bf39e34123a05b2ea5/lagom-2.7.7-cp313-cp313-musllinux_1_2_x86_64.whl", hash = "sha256:0d8f734641a75c4c7ce632f60fd6a65850a3a55d02938acc6d9348812741a167", size = 264973, upload-time = "2025-07-16T11:21:06.189Z" },
+    { url = "https://files.pythonhosted.org/packages/3c/49/b50df0a63035a17e63cdccb14d2274acb0dda39a0f760c9e1679676fa570/lagom-2.7.7-cp313-cp313-win32.whl", hash = "sha256:348c324cac8ad79d670c38b8d1b4de36280032963abd5127e9abce5f396583f5", size = 109265, upload-time = "2025-07-16T11:25:41.439Z" },
+    { url = "https://files.pythonhosted.org/packages/6d/78/a3901039ee8a3a490836234598aefa62f60a051d6418ff2603435b9df4e7/lagom-2.7.7-cp313-cp313-win_amd64.whl", hash = "sha256:f3ec6675496579c67057884b6b33cef56eb7867b6a98d500bbbe70cd7071f921", size = 119608, upload-time = "2025-07-16T11:25:42.54Z" },
+    { url = "https://files.pythonhosted.org/packages/42/f1/300cdc600fd5a0a3e829db532d23758b0c4d4ccf031c1fec91245aded366/lagom-2.7.7-py3-none-any.whl", hash = "sha256:704b52f5b028eec84344fb14164c24cec4853c1b699b2cc008b356a7ebc9c8a9", size = 36924, upload-time = "2025-07-16T11:10:24.036Z" },
+]
+
+[[package]]
 name = "license-expression"
 version = "30.4.4"
 source = { registry = "https://pypi.org/simple" }
@@ -1295,6 +1308,7 @@ name = "sdx-loader"
 version = "0.0.1"
 source = { virtual = "." }
 dependencies = [
+    { name = "lagom" },
     { name = "sds-common" },
     { name = "sdx-base" },
 ]
@@ -1315,6 +1329,7 @@ version-check = [
 
 [package.metadata]
 requires-dist = [
+    { name = "lagom", specifier = ">=2.7.7" },
     { name = "sds-common", specifier = "==1.0.11" },
     { name = "sdx-base", specifier = ">=0.2.9", index = "https://europe-west2-python.pkg.dev/ons-sdx-ci/sdx-python-packages/simple/" },
 ]

@@ -2,7 +2,6 @@ from typing import Protocol
 
 from app.interfaces.schema_repository_interface import SchemaRepositoryInterface
 from app.models.schema import Schema
-from app.models.schema_metadata import SchemaMetadata
 
 
 class ExistingSchema(Protocol):
@@ -23,15 +22,20 @@ class SchemaService:
         """
         Take a list of files and filter to contain only new schemas.
         """
-        existing_schema: list[SchemaMetadata] = self._schema_repository.get_all_schema_metadata()
 
-        # verify files are schemas (file name needs to match schemas/*/*
-        schema_files = [f for f in new_files if f.startswith("schemas/") and f.count("/") == 2]
+        # Files need to be in /schemas
 
+        # Be of the format v{x}.json
 
+        pass
 
     def publish_new_schemas(self, file_list: list[str]):
         """
         Take the list of new schema files, verify and publish the new schemas.
         """
+
+        # Fetch the metadata for the given files
+
+        # TODO 
+
         pass
