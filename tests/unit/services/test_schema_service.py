@@ -87,3 +87,6 @@ class TestFindNewSchemas(unittest.TestCase):
         expected: list[Schema] = []
 
         self.assertEqual(expected, SchemaService().find_new_schemas(existing, schemas))
+
+    def test_schema_filter(self):
+

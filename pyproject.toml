@@ -1,11 +1,16 @@
 [project]
 name = "sdx-loader"
-version = "0.1.0"
+version = "0.0.1"
 description = "A service for loading new sds schemas and datasets"
 requires-python = "==3.13.*"
 dependencies = [
     "sdx-base>=0.2.9",
+    "sds-common==1.0.11",
 ]
+
+[[tool.uv.index]]
+name = "sds-repo"
+url = "https://europe-west2-python.pkg.dev/ons-sds-ci/sds-python-packages/simple/"
 
 [dependency-groups]
 dev = [
