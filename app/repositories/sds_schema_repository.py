@@ -1,10 +1,10 @@
 from typing import Protocol
-from sds_common.schema.schema import Schema as CommonSchema
 
 import requests
+from app.models.schema import Schema
+from sds_common.schema.schema import Schema as CommonSchema
 
 from app.interfaces.schema_repository_interface import SchemaRepositoryInterface
-from app.models.schema import Schema
 from app.models.schema_metadata import SchemaMetadata
 
 

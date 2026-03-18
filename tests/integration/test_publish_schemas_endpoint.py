@@ -6,6 +6,7 @@ from sdx_base.models.pubsub import Message, Envelope
 from starlette.testclient import TestClient
 
 from app.interfaces.schema_repository_interface import SchemaRepositoryInterface
+from app.models.schema import Schema, Properties, SurveyId, SchemaVersion
 from app.models.schema_metadata import SchemaMetadata
 from app.repositories.sds_schema_repository import SdsSchemaRepository
 from app.routes import DEPS
@@ -13,6 +14,18 @@ from app.services.schema_service import SchemaService
 
 import requests
 from sds_common.schema.schema import Schema as CommonSchema
+
+existing_schemas_2 = [
+    SchemaMetadata(
+        guid="abc",
+        survey_id="123",
+        schema_location="abc",
+        sds_schema_version=1,
+        sds_published_at="2001",
+        schema_version="v1",
+        title="Hello World",
+    )
+]
 
 
 class MockSchemaRequest:
@@ -49,36 +62,34 @@ class TestPublishSchemasEndpoint:
         Test our publish schemas endpoint
         """
 
-        existing_schemas = [
-            SchemaMetadata(
-                guid="abc",
-                survey_id="123",
-                schema_location="abc",
-                sds_schema_version=1,
-                sds_published_at="2001",
-                schema_version="v1",
-                title="Hello World",
-            )
-        ]
+        existing_schemas = []
+        mock_schema_request = MockSchemaRequest(existing_schemas)
 
         with DEPS.override_for_test() as test_container:
             # We use the SdsSchema implementation
             test_container[SchemaRepositoryInterface] = SdsSchemaRepository(
-                MockSchemaRequest(existing_schemas)
+                mock_schema_request
             )
 
             # Create fake files to simulate new added schemas sent to loader
-            fake_filenames = "schemas/abc/v1.json\nschemas/def/v3.json\nschemas/ghi/v2.json"
+            received_filenames = "schemas/abc/v1.json\nscripts/doSomething.js\nschemas/v1_template.json"
+
+            valid_schema = Schema(
+                properties=Properties(
+                    survey_id=SurveyId(enum=["123"]),
+                    schema_version=SchemaVersion(const="v1"),
+                )
+            )
 
             # Encode the message
-            fake_data = base64.b64encode(
-                fake_filenames.encode("utf-8")
+            encoded_data = base64.b64encode(
+                received_filenames.encode("utf-8")
             ).decode("utf-8")
 
             # Create a fake Message object to simulate a pubsub object
             self.message: Message = {
                 "attributes": {},
-                "data": fake_data,
+                "data": encoded_data,
                 "message_id": "",
                 "publish_time": "",
             }

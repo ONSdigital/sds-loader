@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Request, Response
+from fastapi import APIRouter, Request
 from lagom.integrations.fast_api import FastApiIntegration
 from sdx_base.models.pubsub import get_message, Message, get_data
 

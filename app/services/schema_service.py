@@ -1,41 +1,37 @@
+import re
 from typing import Protocol
 
-from app.interfaces.schema_repository_interface import SchemaRepositoryInterface
-from app.models.schema import Schema
+from sds_common.models.schema_publish_errors import SchemaPublishError
 
 
-class ExistingSchema(Protocol):
-    survey_id: str
-    schema_version: str
+class SchemaPublisher(Protocol):
+    def publish_schema(self, file_name: str):
+        ...
 
 
 class SchemaService:
 
-    def __init__(self, schema_repository: SchemaRepositoryInterface):
-        self._schema_repository = schema_repository
+    def __init__(self, schema_publisher: SchemaPublisher):
+        self.schema_publisher = schema_publisher
 
-    def find_new_schemas(self, existing_schemas: list[ExistingSchema], schemas: list[Schema]) -> list[Schema]:
-        existing_set = {(x.survey_id, x.schema_version) for x in existing_schemas}
-        return [s for s in schemas if (s.survey_id, s.schema_version) not in existing_set]
-
-    def filter_new_files(self, new_files: list[str]) -> list[str]:
+    def filter_files(self, new_files: list[str]) -> list[str]:
         """
-        Take a list of files and filter to contain only new schemas.
+        Take a list of filepaths and match to regex of schemas/*/*.json.
+
+        :param new_files: List of filepaths.
+        :return: List of filepaths matching the regex.
         """
 
-        # Files need to be in /schemas
-
-        # Be of the format v{x}.json
-
-        pass
+        pattern = re.compile(r"^schemas/[^/]+/[^/]+\.json$")
+        return [f for f in new_files if pattern.match(f)]
 
     def publish_new_schemas(self, file_list: list[str]):
         """
         Take the list of new schema files, verify and publish the new schemas.
         """
 
-        # Fetch the metadata for the given files
-
-        # TODO 
-
-        pass
+        for file in file_list:
+            try:
+                self.schema_publisher.publish_schema(file)
+            except SchemaPublishError as exc:
+                print(f"Failed to publish schema {file}: {exc}")

@@ -2,7 +2,7 @@ from lagom import Singleton
 from lagom.container import Container
 
 from app.interfaces.schema_repository_interface import SchemaRepositoryInterface
-from app.repositories.sds_schema_repository import SdsSchemaRepository, SdsSchemaRequestProtocol
+from app.repositories.sds_schema_repository import SdsSchemaRepository
 from app.services.schema_service import SchemaService
 from app.settings import Settings, get_instance, QuickSettings
 

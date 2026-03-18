@@ -1,6 +1,7 @@
 from abc import ABC
 
 from app.models.schema import Schema
+
 from app.models.schema_metadata import SchemaMetadata
 
 
