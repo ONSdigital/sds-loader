@@ -1,7 +1,6 @@
-from typing import Protocol
+from typing import Protocol, Any
 
 import requests
-from app.models.schema import Schema
 from sds_common.schema.schema import Schema as CommonSchema
 
 from app.interfaces.schema_repository_interface import SchemaRepositoryInterface
@@ -24,7 +23,7 @@ class SdsSchemaRepository(SchemaRepositoryInterface):
     def __init__(self, schema_repository: SdsSchemaRequestProtocol):
         self.schema_repository = schema_repository
 
-    def post_schema(self, schema: Schema):
+    def post_schema(self, schema: Any):
         pass
 
     def get_all_schema_metadata(self) -> list[SchemaMetadata]:
