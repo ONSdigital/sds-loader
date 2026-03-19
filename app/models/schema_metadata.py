@@ -1,6 +1,6 @@
 from app.models.bases import AllowExtraBase
 
-
+# TODO used?
 class SchemaMetadata(AllowExtraBase):
     guid: str
     survey_id: str

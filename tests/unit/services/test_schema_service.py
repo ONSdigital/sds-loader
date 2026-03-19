@@ -1,27 +1,33 @@
 from typing import Callable
 
-from sds_common.models.schema_publish_errors import SchemaPublishError, SchemaDuplicationError
+from sds_common.models.schema_publish_errors import SchemaDuplicationError
 
 from app.services.schema_service import SchemaService
 
 
-# TODO reuse
 class MockPublisher:
+    """
+    Mock Publisher class
+    """
     def __init__(self, side_effects: dict[str, Callable]):
         self.side_effects = side_effects
         self.published_schemas = []
 
     def publish_schema(self, file_name: str):
-        self.published_schemas.append(file_name)
         if file_name in self.side_effects:
             try:
                 self.side_effects[file_name]()
             except:
-                self.published_schemas.pop()
+                return
+
+        self.published_schemas.append(file_name)
 
 
 def raise_schema_error():
-    raise SchemaDuplicationError("fake_file_name")
+    """
+    Raise SchemaDuplicationError. which inherits from SchemaPublishError.
+    """
+    raise SchemaDuplicationError("error")
 
 
 def test_publish_new_schemas_publishes_after_exception():
