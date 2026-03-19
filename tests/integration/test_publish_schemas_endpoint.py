@@ -29,6 +29,12 @@ class TestPublishSchemasEndpoint:
     ):
         """
         Test our publish schemas endpoint
+
+        Two valid schemas
+        - schemas/abc/v1.json
+        - schemas/abc/v3.json
+
+        The others are invalid and should NOT be published
         """
 
         fake_publisher = FakePublisher(
@@ -63,7 +69,7 @@ class TestPublishSchemasEndpoint:
             client = TestClient(test_app)
 
             # Make a POST request to the /publish-schemas endpoint as pubsub would
-            response = client.post("/publish-schemas", json=self.envelope)
+            response = client.post("/events/publish-schemas", json=self.envelope)
 
             # Assert a 200 status code
             assert response.status_code == 200
