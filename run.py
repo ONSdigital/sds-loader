@@ -1,9 +1,10 @@
 from fastapi import FastAPI
 from requests import Request
-from sdx_base.run import run, initialise
+from sdx_base.models.pubsub import Envelope
+from sdx_base.run import initialise
 from sdx_base.server.server import RouterConfig
 from sdx_base.server.servers import default_server
-from sdx_base.server.tx_id import txid_not_applicable
+from sdx_base.server.tx_id import txid_not_applicable, txid_from_request
 
 from app.routes import router
 from app.settings import Settings, ROOT, get_instance
@@ -18,14 +19,21 @@ description = """
 """
 
 
-async def txid_from_goon(request: Request) -> str:
-    print("GOOON")
-    return "123"
+async def smart_txid(request: Request) -> str:
+    """
+    Refactor me
+    """
+    if request.method == "GET":
+        return await txid_not_applicable(request)
+    envelope: Envelope = await request.json()
+    if "message" in envelope:
+        return await txid_from_request(request)
+    return await txid_not_applicable(request)
 
 
 # Basic router configuration
 router_1 = RouterConfig(
-    router, tx_id_getter=txid_not_applicable
+    router, tx_id_getter=smart_txid
 )
 
 
