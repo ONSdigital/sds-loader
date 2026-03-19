@@ -6,6 +6,7 @@ from app import get_logger
 from app.dependencies import build_container
 from app.services.schema_service import SchemaService
 from app.settings import get_instance
+from app.utils.schema_file_parser import SchemaFileParser
 
 logger = get_logger()
 router = APIRouter()
@@ -38,7 +39,8 @@ async def handle(
 
     # Publish the new schemas
     schema_service.publish_new_schemas(
-        get_data(message).split("\n")
+        SchemaFileParser().parse(get_data(message))
     )
+
 
 

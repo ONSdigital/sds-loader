@@ -8,9 +8,8 @@ from sdx_base.server.server import RouterConfig
 from sdx_base.server.tx_id import txid_not_applicable
 from sdx_base.settings.app import AppSettings
 
-from app.interfaces.schema_repository_interface import SchemaRepositoryInterface
 from app.routes import router
-from app.services.schema_service import SchemaService
+from app.services.schema_service import SchemaService, SchemaPublisher
 from app.settings import ROOT
 
 
@@ -19,13 +18,13 @@ from app.settings import ROOT
 # ------------------------
 
 @pytest.fixture
-def schema_repo() -> MagicMock:
-    return create_autospec(SchemaRepositoryInterface)
+def schema_publisher() -> MagicMock:
+    return create_autospec(SchemaPublisher)
 
 
 @pytest.fixture
-def schema_service(schema_repo: MagicMock) -> SchemaService:
-    return SchemaService(schema_repo)
+def schema_service(schema_publisher: SchemaPublisher) -> SchemaService:
+    return SchemaService(schema_publisher)
 
 
 @pytest.fixture

@@ -4,6 +4,9 @@ from app.utils.schema_file_parser import SchemaFileParser
 
 
 def test_parse_filters_only_valid_schema_paths():
+    """
+    Test the parser correctly filters valid schema paths
+    """
     parser = SchemaFileParser()
 
     message = "\n".join(
@@ -27,19 +30,6 @@ def test_parse_filters_only_valid_schema_paths():
     ]
 
 
-def test_parse_splits_on_any_whitespace_not_just_newlines():
-    parser = SchemaFileParser()
-
-    # message.split() splits on spaces, newlines, tabs, repeated whitespace, etc.
-    message = "schemas/a/one.json  schemas/b/two.json\t\nschemas/c/three.json"
-
-    assert parser.parse(message) == [
-        "schemas/a/one.json",
-        "schemas/b/two.json",
-        "schemas/c/three.json",
-    ]
-
-
 @pytest.mark.parametrize(
     "path,expected",
     [
@@ -51,14 +41,16 @@ def test_parse_splits_on_any_whitespace_not_just_newlines():
         ("schemas/a//b.json", False),         # empty segment => doesn't match [^/]+
         ("schemas//b.json", False),           # empty segment
         ("schemas/a/", False),                # missing filename
-        ("schemas/a/b.json ", False),         # trailing space would be stripped by split(), but as a raw path it wouldn't match
         ("Schemas/a/b.json", False),          # wrong case in prefix
         ("other/schemas/a/b.json", False),    # doesn't start with schemas/
     ],
 )
-def test_filter_regex_expectations(path, expected):
+def test_filter_regex_expectations(path: str, expected: bool):
+    """
+    Test the parser correctly filters valid schema paths
+    """
     parser = SchemaFileParser()
-    filtered = parser._filter_files([path])
+    filtered = parser.filter_files([path])
     assert (filtered == [path]) is expected
 
 

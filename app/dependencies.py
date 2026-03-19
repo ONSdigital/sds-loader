@@ -1,10 +1,19 @@
 from lagom import Singleton
 from lagom.container import Container
+from sds_common.publishers.github_schema_publisher import GithubSchemaPublisher
+from sds_common.publishers.schema_publisher import SchemaPublisher
 
-from app.interfaces.schema_repository_interface import SchemaRepositoryInterface
-from app.repositories.sds_schema_repository import SdsSchemaRepository
+
 from app.services.schema_service import SchemaService
+from app.services.schema_service import SchemaPublisher
+
 from app.settings import Settings, get_instance, QuickSettings
+
+
+class FakePublisher:
+    def publish_schema(self, file_name: str):
+        print(f"Published m8: {file_name}")
+        pass
 
 
 def build_container() -> Container:
@@ -30,11 +39,9 @@ def build_container() -> Container:
     # SchemaRepositoryInterface implementation
     # -----------------------------
     if is_prod:
-
-        # TODO add sds common as SdsSchemaRequestProtocol here
-        container[SchemaRepositoryInterface] = Singleton(SdsSchemaRepository)
+        container[SchemaPublisher] = GithubSchemaPublisher
     else:
-        container[SchemaRepositoryInterface] = Singleton(SdsSchemaRepository)
+        container[SchemaPublisher] = FakePublisher
 
     # -----------------------------
     # Services
