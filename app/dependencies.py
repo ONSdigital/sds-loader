@@ -36,7 +36,7 @@ def build_container() -> Container:
     container[Settings] = lambda: get_instance()
 
     # -----------------------------
-    # SchemaRepositoryInterface implementation
+    # SchemaPublisher implementation
     # -----------------------------
     if is_prod:
         container[SchemaPublisher] = GithubSchemaPublisher
