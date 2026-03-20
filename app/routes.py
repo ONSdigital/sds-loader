@@ -1,4 +1,5 @@
 from fastapi import APIRouter, Request
+from fastapi.params import Query
 from lagom.integrations.fast_api import FastApiIntegration
 from sdx_base.models.pubsub import get_message, Message, get_data
 
@@ -39,7 +40,12 @@ async def version():
 @router.post("/events/schema/publish")
 async def publish_schemas(
     request: Request,
-    source: str = "github",
+    source: str = Query(
+        "github",
+        description="The source of the files specified in this request, are they from github or bucket? ",
+        min_length=3,
+        max_length=10,
+    ),
     schema_service: SchemaService = DEPS.depends(SchemaService)
 ):
     """
@@ -58,3 +64,24 @@ async def publish_schemas(
 
     # Return a status
     return 200
+
+
+@router.post("/events/dataset/publish")
+async def publish_dataset(
+    request: Request,
+):
+    """
+    This endpoint handles publishing a dataset
+    """
+    pass
+
+
+@router.delete("/events/dataset/{dataset_id}")
+async def delete_dataset(
+    request: Request,
+):
+    """
+    This endpoint deletes a dataset
+    """
+    pass
+
