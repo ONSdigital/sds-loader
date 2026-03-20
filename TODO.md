@@ -1,0 +1,3 @@
+- Add FastAPI docs to query parameters in routes
+- Add link to documentation
+- Add better tx_id getter

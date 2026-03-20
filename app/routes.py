@@ -39,15 +39,13 @@ async def version():
 @router.post("/events/schema/publish")
 async def publish_schemas(
     request: Request,
+    source: str = "github",
     schema_service: SchemaService = DEPS.depends(SchemaService)
 ):
     """
     This endpoint handles a publishing schemas from a given
     location.
     """
-
-    # Get query parameters
-    source = request.query_params.get("source", "github")
 
     # Fetch the message from pubsub
     message: Message = await get_message(request)

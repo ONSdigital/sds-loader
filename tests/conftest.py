@@ -18,7 +18,8 @@ from app.settings import ROOT
 
 class MockPublisher:
     """
-    Mock Publisher class
+    Mock Publisher class, allows
+    tracking of published schemas and side effects for testing purposes.
     """
     def __init__(self, label: str):
         self.label = label
