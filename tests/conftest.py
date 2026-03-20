@@ -1,5 +1,5 @@
 import os
-from unittest.mock import MagicMock, create_autospec
+from typing import Callable
 
 import pytest
 from fastapi import FastAPI
@@ -9,22 +9,51 @@ from sdx_base.server.tx_id import txid_not_applicable
 from sdx_base.settings.app import AppSettings
 
 from app.routes import router
-from app.services.schema_service import SchemaService, SchemaPublisher
 from app.settings import ROOT
 
+# ------------------------
+# Testing classes
+# ------------------------
+
+
+class MockPublisher:
+    """
+    Mock Publisher class
+    """
+    def __init__(self, label: str):
+        self.label = label
+        self.side_effects = {}
+        self.published_schemas = []
+
+    def add_side_effect(self, file_name: str, side_effect: Callable):
+        self.side_effects[file_name] = side_effect
+
+    def publish_schema(self, file_name: str):
+        if file_name in self.side_effects:
+            try:
+                self.side_effects[file_name]()
+            except:
+                return
+
+        self.published_schemas.append(file_name)
 
 # ------------------------
 # Fixtures
 # ------------------------
 
+
 @pytest.fixture
-def schema_publisher() -> MagicMock:
-    return create_autospec(SchemaPublisher)
+def mock_repo_publisher() -> MockPublisher:
+    return MockPublisher(
+        label="repo publisher"
+    )
 
 
 @pytest.fixture
-def schema_service(schema_publisher: SchemaPublisher) -> SchemaService:
-    return SchemaService(schema_publisher)
+def mock_bucket_publisher() -> MockPublisher:
+    return MockPublisher(
+        label="bucket publisher",
+    )
 
 
 @pytest.fixture

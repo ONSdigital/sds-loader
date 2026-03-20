@@ -6,7 +6,6 @@ from app import get_logger
 from app.dependencies import build_container
 from app.services.schema_service import SchemaService
 from app.settings import get_instance
-from app.utils.schema_file_parser import SchemaFileParser
 
 logger = get_logger()
 router = APIRouter()
@@ -37,27 +36,27 @@ async def version():
 # ------------------------
 
 
-@router.post("/events/publish-schemas")
+@router.post("/events/schema/publish")
 async def publish_schemas(
     request: Request,
     schema_service: SchemaService = DEPS.depends(SchemaService)
 ):
     """
-    This endpoint handles a pubsub request. The payload should contain
-    a newline delimited list of filenames to publish
+    This endpoint handles a publishing schemas from a given
+    location.
     """
+
+    # Get query parameters
+    source = request.query_params.get("source", "github")
+
     # Fetch the message from pubsub
     message: Message = await get_message(request)
 
     # Publish the new schemas
     schema_service.publish_new_schemas(
-
-        # Extract the newline separated files into a list
-        SchemaFileParser().parse(get_data(message))
+        source=source,
+        file_list=get_data(message).split("\n")
     )
 
-    # Return a status message
-    return {"message": "OK"}
-
-
-
+    # Return a status
+    return 200
