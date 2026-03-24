@@ -2,9 +2,12 @@ from fastapi import APIRouter, Request
 from fastapi.params import Query
 from lagom.integrations.fast_api import FastApiIntegration
 from sdx_base.models.pubsub import get_message, Message, get_data
+from starlette.responses import JSONResponse
 
 from app import get_logger
 from app.dependencies import build_container
+from app.exceptions import NonCriticalException, DatasetException
+from app.services.dataset_service import DatasetService
 from app.services.schema_service import SchemaService
 from app.settings import get_instance
 
@@ -66,15 +69,35 @@ async def publish_schemas(
     return 200
 
 
-@router.post("/events/dataset/publish")
-async def publish_dataset(
-    request: Request,
+@router.post("/events/dataset/create")
+async def create_dataset(
+    dataset_service: DatasetService = DEPS.depends(DatasetService)
 ):
     """
-    This endpoint handles publishing a dataset
+    This endpoint handles creating a dataset
     """
-    pass
 
+    try:
+        dataset_service.create_dataset()
+    except NonCriticalException as e:
+
+        # Return a status 200 (non critical exception)
+        return JSONResponse(
+            status_code=200,
+            content={"success": True, "message": str(e)},
+        )
+
+    except DatasetException as e:
+
+        return JSONResponse(
+            status_code=500,
+            content={"success": False, "message": "Exception creating dataset: " + str(e)},
+        )
+
+    return JSONResponse(
+        status_code=200,
+        content={"success": True, "message": "Dataset created successfully"},
+    )
 
 @router.delete("/events/dataset/{dataset_id}")
 async def delete_dataset(

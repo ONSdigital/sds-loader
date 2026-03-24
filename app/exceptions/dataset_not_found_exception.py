@@ -1,3 +1,5 @@
+from app.exceptions import DatasetException
 
-class DatasetNotFoundException(Exception):
+
+class DatasetNotFoundException(DatasetException):
     ...

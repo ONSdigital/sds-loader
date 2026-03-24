@@ -150,7 +150,6 @@ class TestCreateDataset:
         mock_dataset_storage_repo: DatasetStorageRepositoryInterface,
         mock_broadcaster,
         raw_dataset_factory: RawDatasetFactory,
-        dataset_metadata_without_id_factory: DatasetMetadataWithoutIdFactory
     ):
         """
         Test that if a dataset does NOT exist for the current survey_id and period

@@ -1,3 +1,5 @@
+from app.exceptions import NonCriticalException
 
-class DatasetSourceEmptyException(Exception):
+
+class DatasetSourceEmptyException(NonCriticalException):
     ...

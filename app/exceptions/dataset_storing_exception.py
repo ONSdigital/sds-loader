@@ -1,3 +1,5 @@
+from app.exceptions import DatasetException
 
-class DatasetStoringException(Exception):
+
+class DatasetStoringException(DatasetException):
     ...

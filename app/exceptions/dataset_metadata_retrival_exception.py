@@ -1,3 +1,5 @@
+from app.exceptions import DatasetException
 
-class DatasetMetadataRetrivalException(Exception):
+
+class DatasetMetadataRetrivalException(DatasetException):
     ...

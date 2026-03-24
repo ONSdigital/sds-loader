@@ -1,3 +1,5 @@
+from app.exceptions import DatasetException
 
-class DatasetInvalidFilenameException(Exception):
+
+class DatasetInvalidFilenameException(DatasetException):
     ...
