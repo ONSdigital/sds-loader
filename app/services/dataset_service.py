@@ -4,11 +4,11 @@ from typing import Protocol
 
 from app import get_logger
 from app.exceptions.dataset_validation_exception import DatasetValidationException
-from app.exceptions.empty_dataset_source_exception import EmptyDatasetSourceException
-from app.exceptions.invalid_dataset_filename_exception import InvalidDatasetFilenameException
+from app.exceptions.dataset_source_empty_exception import DatasetSourceEmptyException
+from app.exceptions.dataset_invalid_filename_exception import DatasetInvalidFilenameException
 from app.interfaces.dataset_source_repository_interface import DatasetSourceRepositoryInterface
 from app.interfaces.dataset_storage_repository_interface import DatasetStorageRepositoryInterface
-from app.models.dataset import RawDataset, RawDatasetWithoutData, DatasetMetadataWithoutId, UnitDataset
+from app.models.dataset import RawDataset, DatasetMetadataWithoutId, UnitDataset, DatasetMetadata
 
 logger = get_logger()
 
@@ -47,10 +47,11 @@ class DatasetService:
         """
         Create a new dataset (only one)
 
-        :raises EmptyDatasetSourceException: if there are no files in the dataset source repository
-        :raises InvalidDatasetFilenameException: if the filename of the dataset to be created is not valid
+        :raises DatasetSourceEmptyException: if there are no files in the dataset source repository
+        :raises DatasetInvalidFilenameException: if the filename of the dataset to be created is not valid
         :raises DatasetValidationException: if the contents of the dataset are invalid
         :raises DatasetMetadataRetrivalException: if there is an issue retrieving the latest dataset metadata from the dataset storage repository
+        :raises DatasetStoringException: if there is an issue storing the new dataset in the dataset storage repository
         """
 
         # Get the filename of the oldest dataset in the bucket
@@ -59,7 +60,7 @@ class DatasetService:
         # If the source repository is empty, there are no datasets to create
         if not dataset_filename:
             logger.warning(f"No dataset found to create, skipping process")
-            raise EmptyDatasetSourceException("No datasets found in the dataset source repository")
+            raise DatasetSourceEmptyException("No datasets found in the dataset source repository")
 
         # Validate the filename
         if not self._validate_filename(dataset_filename):
@@ -70,7 +71,7 @@ class DatasetService:
                 self.dataset_source_repo.delete_raw_data(dataset_filename)
                 logger.warning(f"Filename: {dataset_filename} has been deleted")
 
-            raise InvalidDatasetFilenameException(f"Filename: {dataset_filename} is not valid")
+            raise DatasetInvalidFilenameException(f"Filename: {dataset_filename} is not valid")
 
         try:
             # Fetch the raw data for given filename from bucket
@@ -102,11 +103,15 @@ class DatasetService:
 
         # Determine next dataset version based on the latest dataset version
         if latest_dataset:
+            logger.info(
+                f"Found previous dataset version: {latest_dataset.sds_dataset_version} for survey {latest_dataset.survey_id}, period {latest_dataset.period_id}, incrementing version for new dataset")
             new_version = latest_dataset.sds_dataset_version + 1
         else:
+            logger.info(
+                f"Could not find a previous dataset version for survey {latest_dataset.survey_id}, period {latest_dataset.period_id}, setting version to 1")
             new_version = 1
 
-        # Create an object that stores metadata for this new dataset
+        # Create a new dataset_metadata object to store
         new_dataset_metadata = DatasetMetadataWithoutId(
             survey_id=raw_dataset.survey_id,
             period_id=raw_dataset.period_id,
@@ -141,7 +146,7 @@ class DatasetService:
             item.identifier for item in raw_dataset.data
         ]
 
-        # Write to firestore
+        # Write to storage (firestore)
         self._save_dataset_to_storage(
             dataset_id=dataset_id,
             dataset_metadata=new_dataset_metadata,
@@ -149,7 +154,18 @@ class DatasetService:
             unit_data_identifiers=unit_data_identifiers,
         )
 
-        # TODO Publish to topic
+        # Create a DatasetMetadata object
+        dataset_metadata = DatasetMetadata(
+            dataset_id=dataset_id,
+            **new_dataset_metadata.model_dump()
+        )
+
+        # Broadcast the dataset has been created (pubsub)
+        self._broadcast_dataset_created(
+            dataset_metadata=dataset_metadata
+        )
+
+        # TODO cleanup determine which to delete logic
 
     def _save_dataset_to_storage(
         self,
@@ -165,7 +181,23 @@ class DatasetService:
         :param dataset_metadata: Metadata for this new dataset
         :param unit_data_collection_with_metadata: A list of the units in the dataset associated with this datasets metadata
         :param unit_data_identifiers: A list of each of the identifiers for the unit data in the dataset
+
+        :raises DatasetStoringException: if there is an issue storing the dataset in the dataset storage repository
         """
+        logger.info(f"Saving new dataset to storage repository: {dataset_id}")
+        self.dataset_storage_repo.store_dataset(
+            dataset_id=dataset_id,
+            dataset_metadata=dataset_metadata,
+            unit_data_collection_with_metadata=unit_data_collection_with_metadata,
+            unit_data_identifiers=unit_data_identifiers,
+        )
+        logger.info(f"Dataset saved successfully: {dataset_id}")
+
+    def _broadcast_dataset_created(self, dataset_metadata: DatasetMetadata):
+        """
+        Broadcast an event that the dataset has been created
+        """
+        logger.info(f"Broadcasting creation of new dataset {dataset_metadata.dataset_id}")
         pass
 
     def delete_dataset(self):

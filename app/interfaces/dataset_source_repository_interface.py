@@ -1,4 +1,4 @@
-from abc import ABC
+from abc import ABC, abstractmethod
 
 from app.models.dataset import RawDataset
 
@@ -11,6 +11,7 @@ class DatasetSourceRepositoryInterface(ABC):
     E.g DatasetSource would be a bucket
     """
 
+    @abstractmethod
     def get_oldest_file(self) -> str | None:
         """
         Returns the filename of the oldest file in the source repository.
@@ -20,6 +21,7 @@ class DatasetSourceRepositoryInterface(ABC):
         """
         ...
 
+    @abstractmethod
     def get_raw_data(self, file_name: str) -> RawDataset:
         """
         Returns the raw content of a file in the source repository.
@@ -32,6 +34,7 @@ class DatasetSourceRepositoryInterface(ABC):
         """
         ...
 
+    @abstractmethod
     def delete_raw_data(self, file_name: str) -> None:
         """
         Deletes the raw content of a file in the source repository.

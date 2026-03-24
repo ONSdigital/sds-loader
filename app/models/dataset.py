@@ -23,17 +23,6 @@ class RawDataset(AllowExtraBase):
     title: Optional[str] = None
 
 
-class RawDatasetWithoutData(AllowExtraBase):
-    """
-    Represents a raw dataset JSON found in the source repository (i.e a Bucket)
-    but without the data block
-    """
-    survey_id: str
-    period_id: str
-    form_types: list[str]
-    title: Optional[str]
-
-
 class UnitDataset(AllowExtraBase):
     """
     Represents a unit from the datasets "data" block
