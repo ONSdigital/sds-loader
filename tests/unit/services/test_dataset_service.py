@@ -2,6 +2,7 @@
 import pytest
 
 from app.exceptions.dataset_invalid_filename_exception import DatasetInvalidFilenameException
+from app.exceptions.dataset_not_found_exception import DatasetNotFoundException
 from app.exceptions.dataset_source_empty_exception import DatasetSourceEmptyException
 from app.exceptions.dataset_validation_exception import DatasetValidationException
 from app.factories.dataset_factories import RawDatasetFactory, DatasetMetadataWithoutIdFactory
@@ -181,6 +182,137 @@ class TestCreateDataset:
 
         # Assert the mock_dataset_source_repo.delete_raw_data method was called
         mock_dataset_source_repo.delete_raw_data.assert_called_once_with("valid-filename.json")
+
+    def test_raises_exception_if_cannot_find_dataset_in_source_repo(
+        self,
+        mock_dataset_source_repo: DatasetSourceRepositoryInterface,
+        mock_dataset_storage_repo: DatasetStorageRepositoryInterface,
+        mock_broadcaster
+    ):
+        """
+        Test that if the specified filename for a dataset cannot be found in the source repository
+        an exception is raised
+        """
+
+        # Mock the source repo to return a valid filename
+        mock_dataset_source_repo.get_oldest_file.return_value = "valid-filename.json"
+
+        # Mock the get_raw_data to return None, to simulate not found
+        mock_dataset_source_repo.get_raw_data.return_value = None
+
+        # Create mock settings
+        class MockSettings:
+            autodelete_dataset = False
+
+        # Create a DatasetService
+        service = DatasetService(
+            dataset_source_repo=mock_dataset_source_repo,
+            dataset_storage_repo=mock_dataset_storage_repo,
+            broadcaster=mock_broadcaster,
+            settings=MockSettings(),
+        )
+
+        # Call create_dataset and assert that it raises the expected exception
+        with pytest.raises(DatasetNotFoundException):
+            service.create_dataset()
+
+    def test_autodelete_after_successfully_reading_dataset(
+        self,
+        mock_dataset_source_repo: DatasetSourceRepositoryInterface,
+        mock_dataset_storage_repo: DatasetStorageRepositoryInterface,
+        mock_broadcaster,
+        raw_dataset_factory: RawDatasetFactory,
+        dataset_metadata_without_id_factory: DatasetMetadataWithoutIdFactory
+    ):
+        """
+        Test that when autodelete is set to True the dataset is automatically deleted
+        after reading from the source repository
+        """
+
+        # ------------------------
+        # Source repository mocks
+        # ------------------------
+
+        # Mock the source repo to return a valid JSON filename
+        mock_dataset_source_repo.get_oldest_file.return_value = "valid-filename.json"
+
+        # Mock the source repo to return valid RawDataset
+        mock_dataset_source_repo.get_raw_data.return_value = raw_dataset_factory.build()
+
+        # ------------------------
+        # Storage repository mocks
+        # ------------------------
+
+        # Mock the storage repository (firestore)
+        # to return a valid dataset
+        mock_dataset_storage_repo.get_latest_dataset_metadata.return_value = dataset_metadata_without_id_factory.build()
+
+        # Create mock settings
+        class MockSettings:
+            autodelete_dataset = True
+
+        # Create a DatasetService
+        service = DatasetService(
+            dataset_source_repo=mock_dataset_source_repo,
+            dataset_storage_repo=mock_dataset_storage_repo,
+            broadcaster=mock_broadcaster,
+            settings=MockSettings(),
+        )
+
+        # Call create_dataset method
+        service.create_dataset()
+
+        # Assert the mock_dataset_source_repo.delete_raw_data method was called
+        mock_dataset_source_repo.delete_raw_data.assert_called_once_with("valid-filename.json")
+
+    def test_does_not_autodelete_after_successfully_reading_dataset_if_autodelete_false(
+        self,
+        mock_dataset_source_repo: DatasetSourceRepositoryInterface,
+        mock_dataset_storage_repo: DatasetStorageRepositoryInterface,
+        mock_broadcaster,
+        raw_dataset_factory: RawDatasetFactory,
+        dataset_metadata_without_id_factory: DatasetMetadataWithoutIdFactory
+    ):
+        """
+        Test that when autodelete is set to True the dataset is automatically deleted
+        after reading from the source repository
+        """
+
+        # ------------------------
+        # Source repository mocks
+        # ------------------------
+
+        # Mock the source repo to return a valid JSON filename
+        mock_dataset_source_repo.get_oldest_file.return_value = "valid-filename.json"
+
+        # Mock the source repo to return valid RawDataset
+        mock_dataset_source_repo.get_raw_data.return_value = raw_dataset_factory.build()
+
+        # ------------------------
+        # Storage repository mocks
+        # ------------------------
+
+        # Mock the storage repository (firestore)
+        # to return a valid dataset
+        mock_dataset_storage_repo.get_latest_dataset_metadata.return_value = dataset_metadata_without_id_factory.build()
+
+        # Create mock settings
+        class MockSettings:
+            autodelete_dataset = False
+
+        # Create a DatasetService
+        service = DatasetService(
+            dataset_source_repo=mock_dataset_source_repo,
+            dataset_storage_repo=mock_dataset_storage_repo,
+            broadcaster=mock_broadcaster,
+            settings=MockSettings(),
+        )
+
+        # Call create_dataset method
+        service.create_dataset()
+
+        # Assert the mock_dataset_source_repo.delete_raw_data method was not called
+        mock_dataset_source_repo.delete_raw_data.assert_not_called()
 
     def test_increments_dataset_version(
         self,
