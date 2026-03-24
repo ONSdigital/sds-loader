@@ -12,36 +12,6 @@ from app.services.dataset_service import DatasetService
 
 class TestCreateDataset:
 
-    def test_raises_exception_if_filename_invalid(
-        self,
-        mock_dataset_source_repo: DatasetSourceRepositoryInterface,
-        mock_dataset_storage_repo: DatasetStorageRepositoryInterface,
-        mock_broadcaster
-    ):
-        """
-        Test that the filename in the dataset source repository is invalid
-        and an exception is raised
-        """
-
-        # Mock the source repo to return a filename that is invalid
-        mock_dataset_source_repo.get_oldest_file.return_value = "invalid-filename"
-
-        # Create mock settings
-        class MockSettings:
-            autodelete_dataset = False
-
-        # Create a DatasetService
-        service = DatasetService(
-            dataset_source_repo=mock_dataset_source_repo,
-            dataset_storage_repo=mock_dataset_storage_repo,
-            broadcaster=mock_broadcaster,
-            settings=MockSettings(),
-        )
-
-        # Call create_dataset and assert that it raises the expected exception
-        with pytest.raises(DatasetInvalidFilenameException):
-            service.create_dataset()
-
     def test_raises_exception_if_source_is_empty(
         self,
         mock_dataset_source_repo: DatasetSourceRepositoryInterface,
@@ -72,6 +42,72 @@ class TestCreateDataset:
         with pytest.raises(DatasetSourceEmptyException):
 
             service.create_dataset()
+
+    def test_raises_exception_if_filename_invalid(
+        self,
+        mock_dataset_source_repo: DatasetSourceRepositoryInterface,
+        mock_dataset_storage_repo: DatasetStorageRepositoryInterface,
+        mock_broadcaster
+    ):
+        """
+        Test that the filename in the dataset source repository is invalid
+        and an exception is raised
+        """
+
+        # Mock the source repo to return a filename that is invalid
+        mock_dataset_source_repo.get_oldest_file.return_value = "invalid-filename"
+
+        # Create mock settings
+        class MockSettings:
+            autodelete_dataset = False
+
+        # Create a DatasetService
+        service = DatasetService(
+            dataset_source_repo=mock_dataset_source_repo,
+            dataset_storage_repo=mock_dataset_storage_repo,
+            broadcaster=mock_broadcaster,
+            settings=MockSettings(),
+        )
+
+        # Call create_dataset and assert that it raises the expected exception
+        with pytest.raises(DatasetInvalidFilenameException):
+            service.create_dataset()
+
+            # Assert that because autodelete_dataset is False, the delete method is not called on the repo
+            mock_dataset_source_repo.delete_raw_data.assert_not_called()
+
+    def test_raises_exception_and_autodeletes_dataset_if_filename_invalid(
+        self,
+        mock_dataset_source_repo: DatasetSourceRepositoryInterface,
+        mock_dataset_storage_repo: DatasetStorageRepositoryInterface,
+        mock_broadcaster
+    ):
+        """
+        Test that the filename in the dataset source repository is invalid
+        and an exception is raised
+        """
+
+        # Mock the source repo to return a filename that is invalid
+        mock_dataset_source_repo.get_oldest_file.return_value = "invalid-filename"
+
+        # Create mock settings
+        class MockSettings:
+            autodelete_dataset = True  # Set autodelete to True
+
+        # Create a DatasetService
+        service = DatasetService(
+            dataset_source_repo=mock_dataset_source_repo,
+            dataset_storage_repo=mock_dataset_storage_repo,
+            broadcaster=mock_broadcaster,
+            settings=MockSettings(),
+        )
+
+        # Call create_dataset and assert that it raises the expected exception
+        with pytest.raises(DatasetInvalidFilenameException):
+            service.create_dataset()
+
+            # Assert the mock_dataset_source_repo.delete_raw_data method was called with the invalid filename
+            mock_dataset_source_repo.delete_raw_data.assert_called_once_with("invalid-filename")
 
     def test_increments_dataset_version(
         self,
