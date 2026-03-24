@@ -8,7 +8,7 @@ from app.exceptions.dataset_validation_exception import DatasetValidationExcepti
 from app.factories.dataset_factories import RawDatasetFactory, DatasetMetadataWithoutIdFactory
 from app.interfaces.dataset_source_repository_interface import DatasetSourceRepositoryInterface
 from app.interfaces.dataset_storage_repository_interface import DatasetStorageRepositoryInterface
-from app.models.dataset import DatasetMetadataWithoutId
+from app.models.dataset import DatasetMetadataWithoutId, DatasetMetadata
 from app.services.dataset_service import DatasetService
 
 
@@ -274,8 +274,7 @@ class TestCreateDataset:
         dataset_metadata_without_id_factory: DatasetMetadataWithoutIdFactory
     ):
         """
-        Test that when autodelete is set to True the dataset is automatically deleted
-        after reading from the source repository
+        Test that when autodelete is set to False the dataset should not be autodeleted
         """
 
         # ------------------------
@@ -450,6 +449,69 @@ class TestCreateDataset:
         assert dataset_metadata.survey_id == survey_id
         assert dataset_metadata.period_id == period_id
         assert dataset_metadata.sds_dataset_version == 1
+
+    def test_broadcasts_dataset_when_created_successfully(
+        self,
+        mock_dataset_source_repo: DatasetSourceRepositoryInterface,
+        mock_dataset_storage_repo: DatasetStorageRepositoryInterface,
+        mock_broadcaster,
+        raw_dataset_factory: RawDatasetFactory,
+    ):
+        """
+        Test that if a dataset is created successfully its metadata
+        is broadcasted
+        """
+
+        # Use predictable survey_id and period
+        survey_id = "123"
+        period_id = "456"
+
+        # ------------------------
+        # Source repository mocks
+        # ------------------------
+
+        # Mock the source repo to return a valid JSON filename
+        mock_dataset_source_repo.get_oldest_file.return_value = "valid-filename.json"
+
+        # Mock the source repo to return valid RawDataset
+        mock_dataset_source_repo.get_raw_data.return_value = raw_dataset_factory.build(
+            survey_id=survey_id,
+            period_id=period_id,
+        )
+
+        # ------------------------
+        # Storage repository mocks
+        # ------------------------
+
+        # Mock the current storage repository (firestore) to force version 1
+        mock_dataset_storage_repo.get_latest_dataset_metadata.return_value = None
+
+        # Create mock settings
+        class MockSettings:
+            autodelete_dataset = False
+
+        # Create a DatasetService
+        service = DatasetService(
+            dataset_source_repo=mock_dataset_source_repo,
+            dataset_storage_repo=mock_dataset_storage_repo,
+            broadcaster=mock_broadcaster,
+            settings=MockSettings(),
+        )
+
+        # Call create_dataset method
+        service.create_dataset()
+
+        # Get all the datasets broadcast to the mock_broadcaster
+        broadcast_datasets = mock_broadcaster.broadcasted_datasets
+
+        # Assert it was just the once
+        assert len(broadcast_datasets) == 1
+
+        # Fetch the broadcast dataset
+        broadcast_dataset: DatasetMetadata = broadcast_datasets[0]
+
+        assert broadcast_dataset.survey_id == survey_id
+        assert broadcast_dataset.period_id == period_id
 
 
 
