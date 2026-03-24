@@ -120,11 +120,11 @@ class DatasetService:
         # Determine next dataset version based on the latest dataset version
         if latest_dataset:
             logger.info(
-                f"Found previous dataset version: {latest_dataset.sds_dataset_version} for survey {latest_dataset.survey_id}, period {latest_dataset.period_id}, incrementing version for new dataset")
+                f"Found previous dataset version: {latest_dataset.sds_dataset_version} for survey {raw_dataset.survey_id}, period {raw_dataset.period_id}, incrementing version for new dataset")
             new_version = latest_dataset.sds_dataset_version + 1
         else:
             logger.info(
-                f"Could not find a previous dataset version for survey {latest_dataset.survey_id}, period {latest_dataset.period_id}, setting version to 1")
+                f"Could not find a previous dataset version for survey {raw_dataset.survey_id}, period {raw_dataset.period_id}, setting version to 1")
             new_version = 1
 
         # Create a new dataset_metadata object to store
