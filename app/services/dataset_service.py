@@ -60,6 +60,19 @@ class DatasetService:
             return True
         return False
 
+    def _autodelete_dataset(self, dataset_filename: str):
+        """
+        If autodelete_dataset is true, delete
+        the given filename from the source repository
+
+        :param dataset_filename: filename of the dataset autodelete
+
+        :raises DatasetDeletionException: if there is an issue deleting the file from the source repository
+        """
+        if self.settings.autodelete_dataset:
+            self.dataset_source_repo.delete_raw_data(dataset_filename)
+            logger.warning(f"Filename: {dataset_filename} has been deleted")
+
     def create_dataset(self):
         """
         Create a new dataset (only one)
@@ -70,6 +83,7 @@ class DatasetService:
         :raises DatasetMetadataRetrivalException: if there is an issue retrieving the latest dataset metadata from the dataset storage repository
         :raises DatasetStoringException: if there is an issue storing the new dataset in the dataset storage repository
         :raises DatasetNotFoundException: if the dataset to be created cannot be found in the dataset source repository
+        :raises DatasetDeletionException if there is an issue deleting the dataset from the source repository
         """
 
         # Get the filename of the oldest dataset in the bucket
@@ -84,10 +98,8 @@ class DatasetService:
         if not self._validate_filename(dataset_filename):
             logger.warning(f"Filename: {dataset_filename} is not valid")
 
-            # If autodelete_dataset is true, delete this from the bucket
-            if self.settings.autodelete_dataset:
-                self.dataset_source_repo.delete_raw_data(dataset_filename)
-                logger.warning(f"Filename: {dataset_filename} has been deleted")
+            # Delete the dataset
+            self._autodelete_dataset(dataset_filename)
 
             raise DatasetInvalidFilenameException(f"Filename: {dataset_filename} is not valid")
 
@@ -97,10 +109,8 @@ class DatasetService:
         except DatasetValidationException as e:
             logger.error(f"Dataset with filename: {dataset_filename} failed validation with error: {e}")
 
-            # If autodelete_dataset is true, delete this from the bucket
-            if self.settings.autodelete_dataset:
-                self.dataset_source_repo.delete_raw_data(dataset_filename)
-                logger.warning(f"Filename: {dataset_filename} has been deleted")
+            # Delete the dataset
+            self._autodelete_dataset(dataset_filename)
 
             raise e
 
@@ -109,10 +119,8 @@ class DatasetService:
             raise DatasetNotFoundException(f"{dataset_filename} could not be found in the dataset source repository")
 
         # TODO should this be done in cleanup method?
-        # If autodelete_dataset is true, delete this from the bucket
-        if self.settings.autodelete_dataset:
-            self.dataset_source_repo.delete_raw_data(dataset_filename)
-            logger.warning(f"Filename: {dataset_filename} has been deleted")
+        # Delete the dataset
+        self._autodelete_dataset(dataset_filename)
 
         # Process the new dataset
         logger.info("Creating new dataset ...")

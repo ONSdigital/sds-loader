@@ -3,6 +3,7 @@ import pytest
 
 from app.exceptions.dataset_invalid_filename_exception import DatasetInvalidFilenameException
 from app.exceptions.dataset_source_empty_exception import DatasetSourceEmptyException
+from app.exceptions.dataset_validation_exception import DatasetValidationException
 from app.factories.dataset_factories import RawDatasetFactory, DatasetMetadataWithoutIdFactory
 from app.interfaces.dataset_source_repository_interface import DatasetSourceRepositoryInterface
 from app.interfaces.dataset_storage_repository_interface import DatasetStorageRepositoryInterface
@@ -73,8 +74,8 @@ class TestCreateDataset:
         with pytest.raises(DatasetInvalidFilenameException):
             service.create_dataset()
 
-            # Assert that because autodelete_dataset is False, the delete method is not called on the repo
-            mock_dataset_source_repo.delete_raw_data.assert_not_called()
+        # Assert that because autodelete_dataset is False, the delete method is not called on the repo
+        mock_dataset_source_repo.delete_raw_data.assert_not_called()
 
     def test_raises_exception_and_autodeletes_dataset_if_filename_invalid(
         self,
@@ -106,8 +107,80 @@ class TestCreateDataset:
         with pytest.raises(DatasetInvalidFilenameException):
             service.create_dataset()
 
-            # Assert the mock_dataset_source_repo.delete_raw_data method was called with the invalid filename
-            mock_dataset_source_repo.delete_raw_data.assert_called_once_with("invalid-filename")
+        # Assert the mock_dataset_source_repo.delete_raw_data method was called with the invalid filename
+        mock_dataset_source_repo.delete_raw_data.assert_called_once_with("invalid-filename")
+
+    def test_raises_exception_when_file_contents_are_invalid(
+        self,
+        mock_dataset_source_repo: DatasetSourceRepositoryInterface,
+        mock_dataset_storage_repo: DatasetStorageRepositoryInterface,
+        mock_broadcaster
+    ):
+        """
+        Test that when the dataset is read in from the source repository
+        and its content does not conform to the expected format an exception is raised
+        """
+
+        # Mock the source repo to return a valid filename
+        mock_dataset_source_repo.get_oldest_file.return_value = "valid-filename.json"
+
+        # Mock the get_raw_data method to raise DatasetValidationException
+        mock_dataset_source_repo.get_raw_data.side_effect = DatasetValidationException("Invalid dataset content")
+
+        # Create mock settings
+        class MockSettings:
+            autodelete_dataset = False
+
+        # Create a DatasetService
+        service = DatasetService(
+            dataset_source_repo=mock_dataset_source_repo,
+            dataset_storage_repo=mock_dataset_storage_repo,
+            broadcaster=mock_broadcaster,
+            settings=MockSettings(),
+        )
+
+        # Call create_dataset and assert that it raises the expected exception
+        with pytest.raises(DatasetValidationException):
+            service.create_dataset()
+
+        # Assert that because autodelete_dataset is False, the delete method is not called on the repo
+        mock_dataset_source_repo.delete_raw_data.assert_not_called()
+
+    def test_raises_exception_and_autodeletes_when_file_contents_are_invalid(
+        self,
+        mock_dataset_source_repo: DatasetSourceRepositoryInterface,
+        mock_dataset_storage_repo: DatasetStorageRepositoryInterface,
+        mock_broadcaster
+    ):
+        """
+        Test that when the dataset is read in from the source repository
+        and its content does not conform to the expected format an exception is raised
+        """
+
+        # Mock the source repo to return a valid filename
+        mock_dataset_source_repo.get_oldest_file.return_value = "valid-filename.json"
+
+        # Mock the get_raw_data method to raise DatasetValidationException
+        mock_dataset_source_repo.get_raw_data.side_effect = DatasetValidationException("Invalid dataset content")
+
+        # Create mock settings
+        class MockSettings:
+            autodelete_dataset = True
+
+        # Create a DatasetService
+        service = DatasetService(
+            dataset_source_repo=mock_dataset_source_repo,
+            dataset_storage_repo=mock_dataset_storage_repo,
+            broadcaster=mock_broadcaster,
+            settings=MockSettings(),
+        )
+
+        # Call create_dataset and assert that it raises the expected exception
+        with pytest.raises(DatasetValidationException):
+            service.create_dataset()
+
+        # Assert the mock_dataset_source_repo.delete_raw_data method was called
+        mock_dataset_source_repo.delete_raw_data.assert_called_once_with("valid-filename.json")
 
     def test_increments_dataset_version(
         self,
