@@ -3,6 +3,7 @@ import uuid
 from typing import Protocol
 
 from app import get_logger
+from app.exceptions.dataset_not_found_exception import DatasetNotFoundException
 from app.exceptions.dataset_validation_exception import DatasetValidationException
 from app.exceptions.dataset_source_empty_exception import DatasetSourceEmptyException
 from app.exceptions.dataset_invalid_filename_exception import DatasetInvalidFilenameException
@@ -68,6 +69,7 @@ class DatasetService:
         :raises DatasetValidationException: if the contents of the dataset are invalid
         :raises DatasetMetadataRetrivalException: if there is an issue retrieving the latest dataset metadata from the dataset storage repository
         :raises DatasetStoringException: if there is an issue storing the new dataset in the dataset storage repository
+        :raises DatasetNotFoundException: if the dataset to be created cannot be found in the dataset source repository
         """
 
         # Get the filename of the oldest dataset in the bucket
@@ -93,15 +95,24 @@ class DatasetService:
             # Fetch the raw data for given filename from bucket
             raw_dataset: RawDataset = self.dataset_source_repo.get_raw_data(dataset_filename)
         except DatasetValidationException as e:
-            logger.warning(f"Dataset with filename: {dataset_filename} failed validation with error: {e}")
+            logger.error(f"Dataset with filename: {dataset_filename} failed validation with error: {e}")
 
             # If autodelete_dataset is true, delete this from the bucket
             if self.settings.autodelete_dataset:
                 self.dataset_source_repo.delete_raw_data(dataset_filename)
                 logger.warning(f"Filename: {dataset_filename} has been deleted")
 
-            # Raise the error to skip processing this dataset
             raise e
+
+        # If the dataset could not be found
+        if not raw_dataset:
+            raise DatasetNotFoundException(f"{dataset_filename} could not be found in the dataset source repository")
+
+        # TODO should this be done in cleanup method?
+        # If autodelete_dataset is true, delete this from the bucket
+        if self.settings.autodelete_dataset:
+            self.dataset_source_repo.delete_raw_data(dataset_filename)
+            logger.warning(f"Filename: {dataset_filename} has been deleted")
 
         # Process the new dataset
         logger.info("Creating new dataset ...")

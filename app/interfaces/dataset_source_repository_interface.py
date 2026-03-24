@@ -22,15 +22,14 @@ class DatasetSourceRepositoryInterface(ABC):
         ...
 
     @abstractmethod
-    def get_raw_data(self, file_name: str) -> RawDataset:
+    def get_raw_data(self, file_name: str) -> RawDataset | None:
         """
         Returns the raw content of a file in the source repository.
 
         :param file_name: The name of the file to return
-        :returns: The raw content of a file in the source repository
+        :returns: The raw content of a file in the source repository or None if not found
 
-        :raises: DatasetNotFound if the specified file_name does not exist
-        :raises DatasetValidationException if the content of the specified file_name is invalid
+        :raises DatasetValidationException if the contents does not conform to RawDataset
         """
         ...
 
