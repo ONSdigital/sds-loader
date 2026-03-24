@@ -17,6 +17,16 @@ class DatasetSettings(Protocol):
     autodelete_dataset: bool
 
 
+class BroadcastProtocol(Protocol):
+    """
+    Defines the protocol for broadcasting messages
+    for the dataset service
+    """
+
+    def broadcast(self, dataset_metadata: DatasetMetadata) -> None:
+        ...
+
+
 class DatasetService:
     """
     DatasetService provides a way to manage
@@ -27,10 +37,12 @@ class DatasetService:
         self,
         dataset_source_repo: DatasetSourceRepositoryInterface,
         dataset_storage_repo: DatasetStorageRepositoryInterface,
+        broadcaster: BroadcastProtocol,
         settings: DatasetSettings
     ):
         self.dataset_source_repo = dataset_source_repo
         self.dataset_storage_repo = dataset_storage_repo
+        self.broadcaster = broadcaster
         self.settings = settings
 
     def _validate_filename(self, filename: str) -> bool:
@@ -161,11 +173,16 @@ class DatasetService:
         )
 
         # Broadcast the dataset has been created (pubsub)
-        self._broadcast_dataset_created(
-            dataset_metadata=dataset_metadata
+        self.broadcaster.broadcast(dataset_metadata)
+
+        # Cleanup any other versions of the dataset if necessary
+        self._cleanup(
+            survey_id=dataset_metadata.survey_id,
+            period_id=dataset_metadata.period_id,
+            version=new_dataset_metadata.sds_dataset_version,
         )
 
-        # TODO cleanup determine which to delete logic
+        logger.info(f"Dataset creation process completed: {dataset_id}")
 
     def _save_dataset_to_storage(
         self,
@@ -191,14 +208,20 @@ class DatasetService:
             unit_data_collection_with_metadata=unit_data_collection_with_metadata,
             unit_data_identifiers=unit_data_identifiers,
         )
-        logger.info(f"Dataset saved successfully: {dataset_id}")
+        logger.info(f"Dataset saved to storage successfully: {dataset_id}")
 
-    def _broadcast_dataset_created(self, dataset_metadata: DatasetMetadata):
+
+    def _cleanup(
+        self,
+        survey_id: str,
+        period_id: str,
+        version: int
+    ):
         """
-        Broadcast an event that the dataset has been created
+        Determine if the other versions of the dataset should be deleted
         """
-        logger.info(f"Broadcasting creation of new dataset {dataset_metadata.dataset_id}")
         pass
+
 
     def delete_dataset(self):
         """
