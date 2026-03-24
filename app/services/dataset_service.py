@@ -8,7 +8,7 @@ from app.exceptions.empty_dataset_source_exception import EmptyDatasetSourceExce
 from app.exceptions.invalid_dataset_filename_exception import InvalidDatasetFilenameException
 from app.interfaces.dataset_source_repository_interface import DatasetSourceRepositoryInterface
 from app.interfaces.dataset_storage_repository_interface import DatasetStorageRepositoryInterface
-from app.models.dataset import RawDataset, RawDatasetWithoutData, DatasetMetadataWithoutId
+from app.models.dataset import RawDataset, RawDatasetWithoutData, DatasetMetadataWithoutId, UnitDataset
 
 logger = get_logger()
 
@@ -47,40 +47,41 @@ class DatasetService:
         """
         Create a new dataset (only one)
 
-        :raises EmptyDatasetSourceException if there are no files in the dataset source repository
-        :raises InvalidDatasetFilenameException if the filename of the dataset to be created is not valid
-        :raises DatasetValidationException if the contents of the dataset are invalid
+        :raises EmptyDatasetSourceException: if there are no files in the dataset source repository
+        :raises InvalidDatasetFilenameException: if the filename of the dataset to be created is not valid
+        :raises DatasetValidationException: if the contents of the dataset are invalid
+        :raises DatasetMetadataRetrivalException: if there is an issue retrieving the latest dataset metadata from the dataset storage repository
         """
 
-        # Get the oldest filename in the bucket
-        oldest_filename: str | None = self.dataset_source_repo.get_oldest_file()
+        # Get the filename of the oldest dataset in the bucket
+        dataset_filename: str | None = self.dataset_source_repo.get_oldest_file()
 
         # If the source repository is empty, there are no datasets to create
-        if not oldest_filename:
+        if not dataset_filename:
             logger.warning(f"No dataset found to create, skipping process")
             raise EmptyDatasetSourceException("No datasets found in the dataset source repository")
 
         # Validate the filename
-        if not self._validate_filename(oldest_filename):
-            logger.warning(f"Filename: {oldest_filename} is not valid")
+        if not self._validate_filename(dataset_filename):
+            logger.warning(f"Filename: {dataset_filename} is not valid")
 
             # If autodelete_dataset is true, delete this from the bucket
             if self.settings.autodelete_dataset:
-                self.dataset_source_repo.delete_raw_data(oldest_filename)
-                logger.warning(f"Filename: {oldest_filename} has been deleted")
+                self.dataset_source_repo.delete_raw_data(dataset_filename)
+                logger.warning(f"Filename: {dataset_filename} has been deleted")
 
-            raise InvalidDatasetFilenameException(f"Filename: {oldest_filename} is not valid")
+            raise InvalidDatasetFilenameException(f"Filename: {dataset_filename} is not valid")
 
         try:
             # Fetch the raw data for given filename from bucket
-            raw_dataset: RawDataset = self.dataset_source_repo.get_raw_data(oldest_filename)
+            raw_dataset: RawDataset = self.dataset_source_repo.get_raw_data(dataset_filename)
         except DatasetValidationException as e:
-            logger.warning(f"Dataset with filename: {oldest_filename} failed validation with error: {e}")
+            logger.warning(f"Dataset with filename: {dataset_filename} failed validation with error: {e}")
 
             # If autodelete_dataset is true, delete this from the bucket
             if self.settings.autodelete_dataset:
-                self.dataset_source_repo.delete_raw_data(oldest_filename)
-                logger.warning(f"Filename: {oldest_filename} has been deleted")
+                self.dataset_source_repo.delete_raw_data(dataset_filename)
+                logger.warning(f"Filename: {dataset_filename} has been deleted")
 
             # Raise the error to skip processing this dataset
             raise e
@@ -88,86 +89,84 @@ class DatasetService:
         # Process the new dataset
         logger.info("Creating new dataset ...")
 
-        """
-        ----------------------
-        Refactor
-        ----------------------
-        """
-
         # Generate Guid
-        guid = str(uuid.uuid4())
+        dataset_id = str(uuid.uuid4())
 
-        # Remove the data from the raw data
-        raw_dataset_without_data = RawDatasetWithoutData(
-            survey_id=raw_dataset.survey_id,
-            period_id=raw_dataset.period_id,
-            form_types=raw_dataset.form_types,
-            title=raw_dataset.title,
-        )
-
-        # TODO Returns a copy of the create-dataset with added metadata.
-
-        filename = oldest_filename
+        # Generate a current timestamp
         now = datetime.datetime.now().strftime("%Y-%m-%dT%H:%M:%SZ")
-        data = raw_dataset.data
-        latest_dataset: DatasetMetadataWithoutId = self.dataset_storage_repo.get_latest_dataset(
+
+        # Get the latest dataset based on survey_id and period_id
+        latest_dataset: DatasetMetadataWithoutId = self.dataset_storage_repo.get_latest_dataset_metadata(
             raw_dataset.survey_id, raw_dataset.period_id
         )
 
-        # Determine next dataset version
-        next_version = latest_dataset.sds_dataset_version + 1
+        # Determine next dataset version based on the latest dataset version
+        if latest_dataset:
+            new_version = latest_dataset.sds_dataset_version + 1
+        else:
+            new_version = 1
 
-        dataset_metadata_without_id = {
-            "survey_id": raw_dataset.survey_id,
-            "period_id": raw_dataset.period_id,
-            "form_types": raw_dataset.form_types,
-            "filename": filename,
-            "sds_published_at": now,
-            "total_reporting_units": len(data),
-            "sds_dataset_version": next_version,
-        }
+        # Create an object that stores metadata for this new dataset
+        new_dataset_metadata = DatasetMetadataWithoutId(
+            survey_id=raw_dataset.survey_id,
+            period_id=raw_dataset.period_id,
+            form_types=raw_dataset.form_types,
+            filename=dataset_filename,
+            sds_published_at=now,
+            total_reporting_units=len(raw_dataset.data),
+            sds_dataset_version=new_version,
+        )
 
         # Add the optional title field
         if "title" in raw_dataset:
-            dataset_metadata_without_id["title"] = raw_dataset.title
+            new_dataset_metadata.title = raw_dataset.title
 
-        # TODO Transforms the new unit data to a new format for storing in firestore.
+        # Create a list of all the unit data from the dataset and associated each unit with
+        # metadata about the new dataset
 
-        data = raw_dataset.data  # todo remove duplication
-        dataset_id = guid
+        unit_data_collection_with_metadata: list[UnitDataset] = [
+            UnitDataset(
+                dataset_id=dataset_id,
+                survey_id=new_dataset_metadata.survey_id,
+                period_id=new_dataset_metadata.period_id,
+                form_types=new_dataset_metadata.form_types,
+                data=item.unit_data,
+            )
 
-        unit_data_collection_with_metadata = [
-            {
-                "dataset_id": dataset_id,
-                "survey_id": dataset_metadata_without_id["survey_id"],
-                "period_id": dataset_metadata_without_id["period_id"],
-                "form_types": dataset_metadata_without_id["form_types"],
-                "data": item["unit_data"],
-            }
-            for item in data
+            for item in raw_dataset.data
         ]
 
-        # TODO extracted_unit_data_identifiers
-
-        extracted_unit_data_identifiers = [
-            item["identifier"] for item in data
+        # Fetch a list of the identifiers for the unit data in the dataset
+        unit_data_identifiers = [
+            item.identifier for item in raw_dataset.data
         ]
-
-        # TODO dataset_publish_response
-
-        """
-        Writes dataset metadata and unit data to Firestore in batches and checks the unit data count matches the total
-        reporting units.
-        """
-
-
-
 
         # Write to firestore
+        self._save_dataset_to_storage(
+            dataset_id=dataset_id,
+            dataset_metadata=new_dataset_metadata,
+            unit_data_collection_with_metadata=unit_data_collection_with_metadata,
+            unit_data_identifiers=unit_data_identifiers,
+        )
 
-        # Publish to topic
+        # TODO Publish to topic
 
+    def _save_dataset_to_storage(
+        self,
+        dataset_id: str,
+        dataset_metadata: DatasetMetadataWithoutId,
+        unit_data_collection_with_metadata: list[UnitDataset],
+        unit_data_identifiers: list[str],
+    ):
+        """
+        Will write information about a new dataset to the storage repository
 
+        :param dataset_id: Unique identifier of the dataset (guid)
+        :param dataset_metadata: Metadata for this new dataset
+        :param unit_data_collection_with_metadata: A list of the units in the dataset associated with this datasets metadata
+        :param unit_data_identifiers: A list of each of the identifiers for the unit data in the dataset
+        """
+        pass
 
     def delete_dataset(self):
         """

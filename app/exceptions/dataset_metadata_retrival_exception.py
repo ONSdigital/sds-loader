@@ -1,0 +1,3 @@
+
+class DatasetMetadataRetrivalException(Exception):
+    ...

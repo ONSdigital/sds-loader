@@ -11,11 +11,13 @@ class DatasetStorageRepositoryInterface(ABC):
     E.g DatasetStorage would be firestore
     """
 
-    def get_latest_dataset(self, survey_id: str, period_id: str) -> DatasetMetadataWithoutId:
+    def get_latest_dataset_metadata(self, survey_id: str, period_id: str) -> DatasetMetadataWithoutId | None:
         """
         Gets the latest dataset for a given survey and period id
 
         :param survey_id: survey id
         :param period_id: period id
+
+        :raises DatasetMetadataRetrivalException
         """
         ...
