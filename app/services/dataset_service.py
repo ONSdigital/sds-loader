@@ -1,3 +1,6 @@
+from app.interfaces.dataset_source_repository_interface import DatasetSourceRepositoryInterface
+from app.interfaces.dataset_storage_repository_interface import DatasetStorageRepositoryInterface
+from app.models.dataset import RawDataset
 
 
 class DatasetService:
@@ -6,11 +9,13 @@ class DatasetService:
     datasets
     """
 
-    def __init__(self):
-        """
-        TODO repositories
-        """
-        pass
+    def __init__(
+        self,
+        dataset_source_repo: DatasetSourceRepositoryInterface,
+        dataset_storage_repo: DatasetStorageRepositoryInterface,
+    ):
+        self.dataset_source_repo = dataset_source_repo
+        self.dataset_storage_repo = dataset_storage_repo
 
     def create_dataset(self):
         """
@@ -18,10 +23,24 @@ class DatasetService:
         """
 
         # Get the oldest filename in the bucket
+        oldest_filename: str = self.dataset_source_repo.get_oldest_file()
+
+        # Validate the filename
 
         # Fetch the raw data for given filename from bucket
+        raw_data: RawDataset = self.dataset_source_repo.get_raw_data(oldest_filename)
 
-        # Upload the raw data to firestore
+        # Validate the raw data contains required fields etc
+
+        # Process the new dataset
+
+            # Generate Guid
+
+            # Remove the data
+
+            # Write to firestore
+
+            # Publish to topic
 
         pass
 
