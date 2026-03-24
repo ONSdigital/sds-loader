@@ -14,6 +14,10 @@ logger = get_logger()
 
 
 class DatasetSettings(Protocol):
+    """
+    The settings needed for the dataset service
+    """
+
     autodelete_dataset: bool
 
 
@@ -210,7 +214,6 @@ class DatasetService:
         )
         logger.info(f"Dataset saved to storage successfully: {dataset_id}")
 
-
     def _cleanup(
         self,
         survey_id: str,
@@ -221,7 +224,6 @@ class DatasetService:
         Determine if the other versions of the dataset should be deleted
         """
         pass
-
 
     def delete_dataset(self):
         """

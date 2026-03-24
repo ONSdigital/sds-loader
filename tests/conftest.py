@@ -1,18 +1,32 @@
 import os
 from typing import Callable
+from unittest.mock import create_autospec
 
 import pytest
 from fastapi import FastAPI
+from polyfactory.pytest_plugin import register_fixture
 from sdx_base.run import initialise
 from sdx_base.server.server import RouterConfig
 from sdx_base.server.tx_id import txid_not_applicable
 from sdx_base.settings.app import AppSettings
 
+from app.factories.dataset_factories import RawDatasetFactory, DatasetMetadataWithoutIdFactory
+from app.interfaces.dataset_source_repository_interface import DatasetSourceRepositoryInterface
+from app.interfaces.dataset_storage_repository_interface import DatasetStorageRepositoryInterface
+from app.models.dataset import DatasetMetadata
 from app.routes import router
 from app.settings import ROOT
 
 # ------------------------
-# Testing classes
+# Factories
+# ------------------------
+
+# Register RawDatasetFactory with pytest
+register_fixture(RawDatasetFactory)
+register_fixture(DatasetMetadataWithoutIdFactory)
+
+# ------------------------
+# Testing classes for schema_service
 # ------------------------
 
 
@@ -39,7 +53,24 @@ class MockPublisher:
         self.published_schemas.append(file_name)
 
 # ------------------------
-# Fixtures
+# Testing classes for dataset_service
+# ------------------------
+
+
+class MockBroadcaster:
+    """
+    A mock broadcaster for testing the broadcasting of dataset metadata.
+    """
+
+    def __init__(self):
+        self.broadcasted_datasets = []
+
+    def broadcast(self, dataset_metadata: DatasetMetadata) -> None:
+        self.broadcasted_datasets.append(dataset_metadata)
+
+
+# ------------------------
+# Fixtures for schema_service
 # ------------------------
 
 
@@ -56,6 +87,29 @@ def mock_bucket_publisher() -> MockPublisher:
         label="bucket publisher",
     )
 
+# ------------------------
+# Fixtures for dataset_service
+# ------------------------
+
+
+@pytest.fixture
+def mock_dataset_source_repo() -> DatasetSourceRepositoryInterface:
+    return create_autospec(DatasetSourceRepositoryInterface)
+
+
+@pytest.fixture
+def mock_dataset_storage_repo() -> DatasetStorageRepositoryInterface:
+    return create_autospec(DatasetStorageRepositoryInterface)
+
+
+@pytest.fixture
+def mock_broadcaster() -> MockBroadcaster:
+    return MockBroadcaster()
+
+
+# ------------------------
+# App fixture
+# ------------------------
 
 @pytest.fixture
 def test_app() -> FastAPI:
