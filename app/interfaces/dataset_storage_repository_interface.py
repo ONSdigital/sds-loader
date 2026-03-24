@@ -8,5 +8,3 @@ class DatasetStorageRepositoryInterface(ABC):
 
     E.g DatasetStorage would be firestore
     """
-
-    def store_dataset(self, r):

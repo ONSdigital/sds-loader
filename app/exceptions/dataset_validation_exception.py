@@ -1,0 +1,3 @@
+
+class DatasetValidationException(Exception):
+    ...

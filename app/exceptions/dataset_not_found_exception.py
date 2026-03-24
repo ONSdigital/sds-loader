@@ -1,3 +1,3 @@
 
-class DatasetNotFound(Exception):
+class DatasetNotFoundException(Exception):
     ...

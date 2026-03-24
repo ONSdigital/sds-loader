@@ -20,6 +20,7 @@ class QuickSettings(BaseSettings):
 
 class Settings(AppSettings):
     project_id: str
+    autodelete_dataset: bool
 
 
 def get_instance() -> Settings:

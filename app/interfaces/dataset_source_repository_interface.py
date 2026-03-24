@@ -26,6 +26,16 @@ class DatasetSourceRepositoryInterface(ABC):
 
         :param file_name: The name of the file to return
         :returns: The raw content of a file in the source repository
-        :raises: DatasetNotFoundException if the specified file_name does not exist
+
+        :raises: DatasetNotFound if the specified file_name does not exist
+        :raises DatasetValidationException if the content of the specified file_name is invalid
+        """
+        ...
+
+    def delete_raw_data(self, file_name: str) -> None:
+        """
+        Deletes the raw content of a file in the source repository.
+
+        :param file_name: The name of the file to delete
         """
         ...
