@@ -12,7 +12,7 @@ class DatasetSourceRepositoryInterface(ABC):
     """
 
     @abstractmethod
-    def get_oldest_file(self) -> str | None:
+    def get_oldest_filename(self) -> str | None:
         """
         Returns the filename of the oldest file in the source repository.
 

@@ -19,7 +19,7 @@ class FakeDatasetSourceRepository(DatasetSourceRepositoryInterface):
             for x in range(3)
         }
 
-    def get_oldest_file(self) -> str | None:
+    def get_oldest_filename(self) -> str | None:
         if not self.datasets:
             return None
 

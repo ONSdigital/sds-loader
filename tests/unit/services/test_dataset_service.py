@@ -26,7 +26,7 @@ class TestCreateDataset:
         """
 
         # Mock the source repo to always return None (no files)
-        mock_dataset_source_repo.get_oldest_file.return_value = None
+        mock_dataset_source_repo.get_oldest_filename.return_value = None
 
         # Create mock settings
         class MockSettings:
@@ -57,7 +57,7 @@ class TestCreateDataset:
         """
 
         # Mock the source repo to return a filename that is invalid
-        mock_dataset_source_repo.get_oldest_file.return_value = "invalid-filename"
+        mock_dataset_source_repo.get_oldest_filename.return_value = "invalid-filename"
 
         # Create mock settings
         class MockSettings:
@@ -90,7 +90,7 @@ class TestCreateDataset:
         """
 
         # Mock the source repo to return a filename that is invalid
-        mock_dataset_source_repo.get_oldest_file.return_value = "invalid-filename"
+        mock_dataset_source_repo.get_oldest_filename.return_value = "invalid-filename"
 
         # Create mock settings
         class MockSettings:
@@ -123,7 +123,7 @@ class TestCreateDataset:
         """
 
         # Mock the source repo to return a valid filename
-        mock_dataset_source_repo.get_oldest_file.return_value = "valid-filename.json"
+        mock_dataset_source_repo.get_oldest_filename.return_value = "valid-filename.json"
 
         # Mock the get_raw_data method to raise DatasetValidationException
         mock_dataset_source_repo.get_raw_data.side_effect = DatasetValidationException("Invalid dataset content")
@@ -159,7 +159,7 @@ class TestCreateDataset:
         """
 
         # Mock the source repo to return a valid filename
-        mock_dataset_source_repo.get_oldest_file.return_value = "valid-filename.json"
+        mock_dataset_source_repo.get_oldest_filename.return_value = "valid-filename.json"
 
         # Mock the get_raw_data method to raise DatasetValidationException
         mock_dataset_source_repo.get_raw_data.side_effect = DatasetValidationException("Invalid dataset content")
@@ -195,7 +195,7 @@ class TestCreateDataset:
         """
 
         # Mock the source repo to return a valid filename
-        mock_dataset_source_repo.get_oldest_file.return_value = "valid-filename.json"
+        mock_dataset_source_repo.get_oldest_filename.return_value = "valid-filename.json"
 
         # Mock the get_raw_data to return None, to simulate not found
         mock_dataset_source_repo.get_raw_data.return_value = None
@@ -234,7 +234,7 @@ class TestCreateDataset:
         # ------------------------
 
         # Mock the source repo to return a valid JSON filename
-        mock_dataset_source_repo.get_oldest_file.return_value = "valid-filename.json"
+        mock_dataset_source_repo.get_oldest_filename.return_value = "valid-filename.json"
 
         # Mock the source repo to return valid RawDataset
         mock_dataset_source_repo.get_raw_data.return_value = raw_dataset_factory.build()
@@ -282,7 +282,7 @@ class TestCreateDataset:
         # ------------------------
 
         # Mock the source repo to return a valid JSON filename
-        mock_dataset_source_repo.get_oldest_file.return_value = "valid-filename.json"
+        mock_dataset_source_repo.get_oldest_filename.return_value = "valid-filename.json"
 
         # Mock the source repo to return valid RawDataset
         mock_dataset_source_repo.get_raw_data.return_value = raw_dataset_factory.build()
@@ -335,7 +335,7 @@ class TestCreateDataset:
         # ------------------------
 
         # Mock the source repo to return a valid JSON filename
-        mock_dataset_source_repo.get_oldest_file.return_value = "valid-filename.json"
+        mock_dataset_source_repo.get_oldest_filename.return_value = "valid-filename.json"
 
         # Mock the source repo to return valid RawDataset
         mock_dataset_source_repo.get_raw_data.return_value = raw_dataset_factory.build(
@@ -405,7 +405,7 @@ class TestCreateDataset:
         # ------------------------
 
         # Mock the source repo to return a valid JSON filename
-        mock_dataset_source_repo.get_oldest_file.return_value = "valid-filename.json"
+        mock_dataset_source_repo.get_oldest_filename.return_value = "valid-filename.json"
 
         # Mock the source repo to return valid RawDataset
         mock_dataset_source_repo.get_raw_data.return_value = raw_dataset_factory.build(
@@ -471,7 +471,7 @@ class TestCreateDataset:
         # ------------------------
 
         # Mock the source repo to return a valid JSON filename
-        mock_dataset_source_repo.get_oldest_file.return_value = "valid-filename.json"
+        mock_dataset_source_repo.get_oldest_filename.return_value = "valid-filename.json"
 
         # Mock the source repo to return valid RawDataset
         # with some fake unit_data to test if this is correctly formatted on save
@@ -578,7 +578,7 @@ class TestCreateDataset:
         # ------------------------
 
         # Mock the source repo to return a valid JSON filename
-        mock_dataset_source_repo.get_oldest_file.return_value = "valid-filename.json"
+        mock_dataset_source_repo.get_oldest_filename.return_value = "valid-filename.json"
 
         # Mock the source repo to return valid RawDataset
         mock_dataset_source_repo.get_raw_data.return_value = raw_dataset_factory.build(

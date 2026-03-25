@@ -89,7 +89,7 @@ class DatasetService:
         logger.info(f"Starting create dataset process...")
 
         # Get the filename of the oldest dataset in the bucket
-        dataset_filename: str | None = self.dataset_source_repo.get_oldest_file()
+        dataset_filename: str | None = self.dataset_source_repo.get_oldest_filename()
 
         # If the source repository is empty, there are no datasets to create
         if not dataset_filename:
