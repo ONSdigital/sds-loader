@@ -34,7 +34,6 @@ class TestPublishSchemasEndpoint:
 
     def test_publish_schemas_to_github_with_all_valid_schemas(
         self,
-
         test_app: FastAPI,
         mock_repo_publisher: MockPublisher,
         mock_bucket_publisher: MockPublisher
@@ -124,7 +123,6 @@ class TestPublishSchemasEndpoint:
 
     def test_publish_schemas_to_github_with_some_invalid_filenames(
         self,
-
         test_app: FastAPI,
         mock_repo_publisher: MockPublisher,
         mock_bucket_publisher: MockPublisher

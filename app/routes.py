@@ -69,7 +69,7 @@ async def publish_schemas(
     return 200
 
 
-@router.post("/events/dataset/create")
+@router.get("/events/dataset/create")
 async def create_dataset(
     dataset_service: DatasetService = DEPS.depends(DatasetService)
 ):
