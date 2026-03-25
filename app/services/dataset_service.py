@@ -86,6 +86,8 @@ class DatasetService:
         :raises DatasetDeletionException if there is an issue deleting the dataset from the source repository
         """
 
+        logger.info(f"Starting create dataset process...")
+
         # Get the filename of the oldest dataset in the bucket
         dataset_filename: str | None = self.dataset_source_repo.get_oldest_file()
 
@@ -102,6 +104,8 @@ class DatasetService:
             self._autodelete_dataset(dataset_filename)
 
             raise DatasetInvalidFilenameException(f"Filename: {dataset_filename} is not valid")
+
+        logger.info(f"Fetching latest dataset from source repository: {dataset_filename}")
 
         try:
             # Fetch the raw data for given filename from bucket
@@ -181,13 +185,16 @@ class DatasetService:
             item.identifier for item in raw_dataset.data
         ]
 
-        # Write to storage (firestore)
-        self._save_dataset_to_storage(
+        # Write the new dataset to storage (firestore)
+
+        logger.info(f"Saving new dataset to storage repository: {dataset_id}")
+        self.dataset_storage_repo.store_dataset(
             dataset_id=dataset_id,
             dataset_metadata=new_dataset_metadata,
             unit_data_collection_with_metadata=unit_data_collection_with_metadata,
             unit_data_identifiers=unit_data_identifiers,
         )
+        logger.info(f"Dataset saved to storage successfully: {dataset_id}")
 
         # Create a DatasetMetadata object
         dataset_metadata = DatasetMetadata(
@@ -198,6 +205,8 @@ class DatasetService:
         # Broadcast the dataset has been created (pubsub)
         self.broadcaster.broadcast(dataset_metadata)
 
+        logger.info(f"Cleaning up for: {dataset_id}")
+
         # Cleanup any other versions of the dataset if necessary
         self._cleanup(
             survey_id=dataset_metadata.survey_id,
@@ -206,32 +215,6 @@ class DatasetService:
         )
 
         logger.info(f"Dataset creation process completed: {dataset_id}")
-
-    def _save_dataset_to_storage(
-        self,
-        dataset_id: str,
-        dataset_metadata: DatasetMetadataWithoutId,
-        unit_data_collection_with_metadata: list[UnitDataset],
-        unit_data_identifiers: list[str],
-    ):
-        """
-        Will write information about a new dataset to the storage repository
-
-        :param dataset_id: Unique identifier of the dataset (guid)
-        :param dataset_metadata: Metadata for this new dataset
-        :param unit_data_collection_with_metadata: A list of the units in the dataset associated with this datasets metadata
-        :param unit_data_identifiers: A list of each of the identifiers for the unit data in the dataset
-
-        :raises DatasetStoringException: if there is an issue storing the dataset in the dataset storage repository
-        """
-        logger.info(f"Saving new dataset to storage repository: {dataset_id}")
-        self.dataset_storage_repo.store_dataset(
-            dataset_id=dataset_id,
-            dataset_metadata=dataset_metadata,
-            unit_data_collection_with_metadata=unit_data_collection_with_metadata,
-            unit_data_identifiers=unit_data_identifiers,
-        )
-        logger.info(f"Dataset saved to storage successfully: {dataset_id}")
 
     def _cleanup(
         self,

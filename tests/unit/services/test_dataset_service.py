@@ -450,6 +450,113 @@ class TestCreateDataset:
         assert dataset_metadata.period_id == period_id
         assert dataset_metadata.sds_dataset_version == 1
 
+    def test_stored_successfully_when_created(
+        self,
+        mock_dataset_source_repo: DatasetSourceRepositoryInterface,
+        mock_dataset_storage_repo: DatasetStorageRepositoryInterface,
+        mock_broadcaster,
+        raw_dataset_factory: RawDatasetFactory
+    ):
+        """
+        Test the dataset_storage_repo is called correctly when a valid
+        dataset is created
+        """
+
+        # Use predictable survey_id and period_id
+        survey_id = "123"
+        period_id = "456"
+
+        # ------------------------
+        # Source repository mocks
+        # ------------------------
+
+        # Mock the source repo to return a valid JSON filename
+        mock_dataset_source_repo.get_oldest_file.return_value = "valid-filename.json"
+
+        # Mock the source repo to return valid RawDataset
+        # with some fake unit_data to test if this is correctly formatted on save
+        mock_dataset_source_repo.get_raw_data.return_value = raw_dataset_factory.build(
+            survey_id=survey_id,
+            period_id=period_id,
+            data=[
+                {
+                    "identifier": "abc",
+                    "unit_data": ["hello", "world"],
+                },
+                {
+                    "identifier": "def",
+                    "unit_data": []
+                },
+                {
+                    "identifier": "ghi",
+                    "unit_data": ["test"]
+                }
+            ]
+        )
+
+        # ------------------------
+        # Storage repository mocks
+        # ------------------------
+
+        # Mock the current storage repository (firestore) to force version 1
+        mock_dataset_storage_repo.get_latest_dataset_metadata.return_value = None
+
+        # Create mock settings
+        class MockSettings:
+            autodelete_dataset = False
+
+        # Create a DatasetService
+        service = DatasetService(
+            dataset_source_repo=mock_dataset_source_repo,
+            dataset_storage_repo=mock_dataset_storage_repo,
+            broadcaster=mock_broadcaster,
+            settings=MockSettings(),
+        )
+
+        # Call create_dataset method
+        service.create_dataset()
+
+        # Assert the mock_dataset_storage_repo is called
+        mock_dataset_storage_repo.store_dataset.assert_called_once()
+
+        args, kwargs = mock_dataset_storage_repo.store_dataset.call_args
+
+        # ------------------------
+        # Check unit_data_identifiers
+        # ------------------------
+
+        unit_data_identifiers = kwargs['unit_data_identifiers']
+
+        expected_identifiers = [
+            "abc", "def", "ghi"
+        ]
+
+        assert unit_data_identifiers == expected_identifiers
+
+        # ------------------------
+        # Check unit_data_collection_with_metadata
+        # ------------------------
+
+        unit_data_collection_with_metadata = kwargs['unit_data_collection_with_metadata']
+
+        # There should be 3 sets of unit_data
+        assert len(unit_data_collection_with_metadata) == 3
+
+        # Each one should have survey_id and period_id that match
+        # unit_data should match what we mocked
+
+        assert unit_data_collection_with_metadata[0].survey_id == survey_id
+        assert unit_data_collection_with_metadata[0].period_id == period_id
+        assert unit_data_collection_with_metadata[0].data == ["hello", "world"]
+
+        assert unit_data_collection_with_metadata[1].survey_id == survey_id
+        assert unit_data_collection_with_metadata[1].period_id == period_id
+        assert unit_data_collection_with_metadata[1].data == []
+
+        assert unit_data_collection_with_metadata[2].survey_id == survey_id
+        assert unit_data_collection_with_metadata[2].period_id == period_id
+        assert unit_data_collection_with_metadata[2].data == ["test"]
+
     def test_broadcasts_dataset_when_created_successfully(
         self,
         mock_dataset_source_repo: DatasetSourceRepositoryInterface,

@@ -99,6 +99,7 @@ async def create_dataset(
         content={"success": True, "message": "Dataset created successfully"},
     )
 
+
 @router.delete("/events/dataset/{dataset_id}")
 async def delete_dataset(
     request: Request,
