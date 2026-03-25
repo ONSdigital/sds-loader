@@ -2,6 +2,11 @@ from lagom.container import Container
 from sds_common.publishers.gcs_schema_publisher import GcsSchemaPublisher
 from sds_common.publishers.github_schema_publisher import GithubSchemaPublisher
 
+from app.interfaces.dataset_source_repository_interface import DatasetSourceRepositoryInterface
+from app.interfaces.dataset_storage_repository_interface import DatasetStorageRepositoryInterface
+from app.repositories.dataset_source import fake_dataset_source_repository
+from app.repositories.dataset_source.fake_dataset_source_repository import FakeDatasetSourceRepository
+from app.repositories.dataset_storage.fake_dataset_storage_repository import FakeDatasetStorageRepository
 from app.services.schema_service import SchemaService
 
 from app.settings import Settings, get_instance, QuickSettings
@@ -33,6 +38,18 @@ def build_container() -> Container:
     # Core / shared dependencies
     # -----------------------------
     container[Settings] = lambda: get_instance()
+
+    # -----------------------------
+    # DatasetSourceRepositoryInterface
+    # -----------------------------
+
+    container[DatasetSourceRepositoryInterface] = FakeDatasetSourceRepository
+
+    # -----------------------------
+    # DatasetStorageRepositoryInterface
+    # -----------------------------
+
+    container[DatasetStorageRepositoryInterface] = FakeDatasetStorageRepository
 
     # -----------------------------
     # Services

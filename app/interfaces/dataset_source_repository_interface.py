@@ -8,7 +8,7 @@ class DatasetSourceRepositoryInterface(ABC):
     This interface defines where datasets are originally stored
     before being moved to their storage location
 
-    E.g DatasetSource would be a bucket
+    E.g. DatasetSource would be a bucket
     """
 
     @abstractmethod

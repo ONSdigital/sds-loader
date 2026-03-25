@@ -1,35 +1,7 @@
-# sdx-fastapi-boilerplate
-A boilerplate for creating fastapi services
+# sds-loader
 
-## Prerequisites
+A microservice for loading and modifying data into SDS
 
-- Python 3.13
-- UV (a command line tool for managing Python environments)
-
-### Installing Python 3.13
-
-If you don't have Python 3.13 installed, you can install it via brew:
-
-```bash
-brew install python@3.13
-```
-
-### Install UV:
-   - This project uses UV for dependency management. Ensure it is installed on your system.
-   - If UV is not installed, you can install it using:
-```bash
-
-curl -LsSf https://astral.sh/uv/install.sh | sh
-
-OR 
-
-brew install uv
-```
-- Use the official UV installation guide for other installation methods: https://docs.astral.sh/uv/getting-started/installation/
-- Verify the installation by using the following command:
-```bash
-uv --version
-```
 
 ### Install dependencies
 
