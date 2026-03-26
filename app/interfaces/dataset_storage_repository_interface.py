@@ -65,3 +65,17 @@ class DatasetStorageRepositoryInterface(ABC):
         :raises DatasetDeletionException: if there is an issue removing the dataset
         """
         ...
+
+    @abstractmethod
+    def delete_dataset_by_guid(
+        self,
+        guid: Guid,
+    ):
+        """
+        Delete a specific dataset from the repository
+
+        :param guid: guid of the dataset to delete
+
+        :raises DatasetDeletionException: if there is an issue removing the dataset
+        """
+        ...

@@ -93,7 +93,7 @@ async def create_dataset(
             content={"success": True, "message": str(e)},
         )
 
-    except DatasetException as e:
+    except (DatasetException, Exception) as e:
 
         return JSONResponse(
             status_code=500,

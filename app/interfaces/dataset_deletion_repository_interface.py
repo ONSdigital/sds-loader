@@ -1,5 +1,6 @@
 from abc import ABC, abstractmethod
 
+from app.enums.delete_status import DeleteStatus
 from app.models.guid import Guid
 
 
@@ -17,5 +18,15 @@ class DatasetDeletionRepositoryInterface(ABC):
         Get the next Guid for a dataset to be deleted
 
         :return The guid of the dataset to delete, or none if no datasets are marked for deletion
+        """
+        ...
+
+    @abstractmethod
+    def mark_record_status(self, guid: Guid, status: DeleteStatus) -> None:
+        """
+        Mark the record with the given guid with the given status
+
+        :param guid: The guid of the dataset deletion record to mark
+        :param status: The DeleteStatus to mark the record with
         """
         ...

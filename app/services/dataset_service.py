@@ -3,7 +3,9 @@ import uuid
 from typing import Protocol
 
 from app import get_logger
-from app.exceptions.dataset_marked_for_deletion_empty_exception import DatasetMarkedForDeletionEmptyException
+from app.enums.delete_status import DeleteStatus
+from app.exceptions.dataset_deletion_empty_exception import DatasetDeletionEmptyException
+from app.exceptions.dataset_deletion_exception import DatasetDeletionException
 from app.exceptions.dataset_not_found_exception import DatasetNotFoundException
 from app.exceptions.dataset_validation_exception import DatasetValidationException
 from app.exceptions.dataset_source_empty_exception import DatasetSourceEmptyException
@@ -191,6 +193,7 @@ class DatasetService:
         # Create a list of all the unit data from the dataset and associated each unit with
         # metadata about the new dataset
 
+        #  TODO is this duplication needed?
         unit_data_collection_with_metadata: list[UnitDataset] = [
             UnitDataset(
                 dataset_id=dataset_id,
@@ -281,33 +284,56 @@ class DatasetService:
 
         TODO refactor this doc
 
-        1. Fetch the GUID for a dataset that is marked for deletion (from the storage repository)
+        1. Fetch the GUID for a dataset that is marked for deletion (from the storage repository) either PROCESSING OR PENDING
         2. If the GUID is None
             - Skip the process as no records have been found to delete
-        3. Then check a record actually exists for this GUID
-            - If a record does not exist, update the deletion record to be an error
-        4. If the record does exist, mark the delete record as processing
-        5. Delete the dataset
-        6. When the delete process finishes, update the deletion record to be "deleted"
+        3. Mark the deletion record as "PROCESSING" before we begin a delete
+        4. Delete the dataset
+        6. When the delete process finishes, update the deletion record to be "DELETED"
 
-        :raises DatasetMarkedForDeletionEmptyException: if there are no datasets marked for deletion in the storage repository (non critical)
+        :raises DatasetDeletionEmptyException: if there are no datasets marked for deletion in the dataset_deletion_repo (non critical)
+        :raises DatasetDeletionException: if an error occurs deleting the dataset from the storage repository (critical)
         """
+
+        logger.info("Starting delete dataset process")
 
         # Fetch a single dataset guid "marked for deletion" from the dataset_deletion_repo (firestore)
         dataset_guid_to_delete: Guid = self.dataset_deletion_repo.get_dataset_to_delete()
 
         if not dataset_guid_to_delete:
             logger.info("No datasets marked for deletion (skipping process)")
-            raise DatasetMarkedForDeletionEmptyException(
+            raise DatasetDeletionEmptyException(
                 "No datasets marked for deletion in the storage repository"
             )
 
-        # Check a record actually exists for this guid in the storage repository
+        logger.info(f"Selected dataset to delete: {dataset_guid_to_delete}")
 
-        # TODO combine above and below into same step but raise exception
-        # Get the dataset document based on this guid from the storage repository
+        # Mark as deletion record as processing
+        self.dataset_deletion_repo.mark_record_status(
+            guid=dataset_guid_to_delete,
+            status=DeleteStatus.PROCESSING,
+        )
 
-        # Delete the document
+        # Attempt to delete
+        try:
+            self.dataset_storage_repo.delete_dataset_by_guid(dataset_guid_to_delete)
 
-        # Update the status of the record in dataset_deletion_repo to deleted
-        pass
+        except DatasetDeletionException as e:
+
+            logger.error("Error deleting dataset, updating delete record status to ERROR")
+
+            # If an error occurred, update the status for the delete record
+            self.dataset_deletion_repo.mark_record_status(
+                guid=dataset_guid_to_delete,
+                status=DeleteStatus.ERROR,
+            )
+
+            raise e
+
+        # Mark the deletion record as deleted
+        self.dataset_deletion_repo.mark_record_status(
+            guid=dataset_guid_to_delete,
+            status=DeleteStatus.DELETED,
+        )
+
+        logger.info(f"Dataset deleted successfully: {dataset_guid_to_delete}")
