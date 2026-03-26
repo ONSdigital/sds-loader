@@ -1,3 +1,4 @@
+from lagom import Singleton
 from lagom.container import Container
 from sds_common.publishers.gcs_schema_publisher import GcsSchemaPublisher
 from sds_common.publishers.github_schema_publisher import GithubSchemaPublisher
@@ -5,8 +6,10 @@ from sds_common.publishers.github_schema_publisher import GithubSchemaPublisher
 from app.interfaces.dataset_source_repository_interface import DatasetSourceRepositoryInterface
 from app.interfaces.dataset_storage_repository_interface import DatasetStorageRepositoryInterface
 from app.models.dataset import DatasetMetadata
+from app.repositories.dataset_source.bucket_dataset_source_repository import BucketDatasetSourceRepository
 from app.repositories.dataset_source.fake_dataset_source_repository import FakeDatasetSourceRepository
 from app.repositories.dataset_storage.fake_dataset_storage_repository import FakeDatasetStorageRepository
+from app.repositories.dataset_storage.firestore_dataset_storage_repository import FirestoreDatasetStorageRepository
 from app.services.dataset_service import DatasetService, BroadcastProtocol, DatasetSettings
 from app.services.schema_service import SchemaService
 
@@ -52,19 +55,30 @@ def build_container() -> Container:
     # DatasetSourceRepositoryInterface
     # -----------------------------
 
-    container[DatasetSourceRepositoryInterface] = FakeDatasetSourceRepository
+    if is_prod:
+        container[DatasetSourceRepositoryInterface] = BucketDatasetSourceRepository
+
+    else:
+        container[DatasetSourceRepositoryInterface] = FakeDatasetSourceRepository
 
     # -----------------------------
     # DatasetStorageRepositoryInterface
     # -----------------------------
 
-    container[DatasetStorageRepositoryInterface] = FakeDatasetStorageRepository
+    if is_prod:
+        container[DatasetStorageRepositoryInterface] = FirestoreDatasetStorageRepository
+    else:
+        container[DatasetStorageRepositoryInterface] = FakeDatasetStorageRepository
 
     # -----------------------------
     # Protocols
     # -----------------------------
 
-    container[BroadcastProtocol] = FakeBroadcaster
+    if is_prod:
+        container[BroadcastProtocol] = FakeBroadcaster  # TODO
+    else:
+        container[BroadcastProtocol] = FakeBroadcaster
+
     container[DatasetSettings] = lambda: get_instance()
 
     # -----------------------------
@@ -85,6 +99,6 @@ def build_container() -> Container:
         )
 
     # Dataset service
-    container[DatasetService] = DatasetService
+    container[DatasetService] = Singleton(DatasetService)
 
     return container

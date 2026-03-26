@@ -10,20 +10,10 @@ class FirestoreDatasetDeletionRepository(DatasetDeletionRepositoryInterface):
     """
 
     def __init__(self):
-
-        # Key = guid, value = status
-        self.delete_records = {}
+        pass
 
     def mark_record_status(self, guid: Guid, status: DeleteStatus) -> None:
-        if guid in self.delete_records:
-            self.delete_records[guid] = status
+        pass
 
     def get_dataset_to_delete(self) -> Guid | None:
-        # Get the first item in the dict
-        for guid, status in self.delete_records.items():
-            if status == DeleteStatus.PROCESSING:
-                return guid
-        for guid, status in self.delete_records.items():
-            if status == DeleteStatus.PENDING:
-                return guid
-        return None
+        pass
