@@ -20,6 +20,7 @@ class DatasetSettings(Protocol):
     """
 
     autodelete_dataset: bool
+    retain_old_datasets: bool = True
 
 
 class BroadcastProtocol(Protocol):
@@ -75,7 +76,32 @@ class DatasetService:
 
     def create_dataset(self):
         """
-        Create a new dataset (only one)
+        Create a single new dataset, this process...
+
+        1. Looks for the oldest file in the source repository (bucket) and returns the filename
+            -  If the source repository is empty, no datasets are ready to be created so the process throws DatasetSourceEmptyException (non critical)
+        2. The filename is then validated e.g. must be json format
+            -  If the filename is invalid, the file is deleted from the source repository and DatasetInvalidFilenameException is thrown (critical)
+        3. If the filename is valid, the raw data for the file is fetched from the source repository
+            -  If there is an issue with the contents of the dataset e.g. missing keys, DatasetValidationException is thrown (critical)
+            -  If there is an issue retrieving the dataset from the source repository, DatasetMetadataRetrivalException is thrown (critical)
+            -  If for some reason the dataset cannot be found in the source repository, DatasetNotFoundException is thrown (critical)
+        4. Once we have read the raw data in, we delete the raw dataset from the source repository
+            -  If an error occurs deleting this dataset, a DatasetDeletionException is thrown (critical)
+        5. We then generate a guid and timestamp for this new dataset
+        6. We then determine a version for this dataset by looking in the storage repository (firestore) for any current dataset with the same survey_id and period
+            -  if a version already exists, we increment it
+            -  if no version exists, the version is 1
+        7. For each unit in the raw dataset, we create a UnitDataset object which attaches each unit with metadata for the current dataset
+        8. We then extract a single list of all the identifiers for the unit data in the dataset
+        9. We then store the dataset in the storage repository (firestore) with all the metadata and unit data
+            -  If there is an issue storing the dataset in the storage a DatasetStoringException is thrown (critical)
+        10. We then broadcast an event (pubsub) containing the metadata for the new dataset
+        11. Finally, we run cleanup method which is responsible for cleaning up old dataset versions if necessary
+            -  The previous version of a dataset will be deleted if all of these conditions are met...
+                - retain_old_datasets is false
+                - the current version of the dataset is greater than 1
+                - the current version of the dataset was successfully stored
 
         :raises DatasetSourceEmptyException: if there are no files in the dataset source repository
         :raises DatasetInvalidFilenameException: if the filename of the dataset to be created is not valid
@@ -225,6 +251,8 @@ class DatasetService:
         """
         Determine if the other versions of the dataset should be deleted
         """
+
+        # TODO cleanup
         pass
 
     def delete_dataset(self):
