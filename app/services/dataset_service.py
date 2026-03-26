@@ -51,16 +51,6 @@ class DatasetService:
         self.broadcaster = broadcaster
         self.settings = settings
 
-    def _validate_filename(self, filename: str) -> bool:
-        """
-        Check if the filename given to the dataset is valid
-
-        TODO maybe put into service?
-        """
-        if filename.endswith(".json"):
-            return True
-        return False
-
     def _autodelete_dataset(self, dataset_filename: str):
         """
         If autodelete_dataset is true, delete
@@ -109,7 +99,7 @@ class DatasetService:
         :raises DatasetMetadataRetrivalException: if there is an issue retrieving the latest dataset metadata from the dataset storage repository
         :raises DatasetStoringException: if there is an issue storing the new dataset in the dataset storage repository
         :raises DatasetNotFoundException: if the dataset to be created cannot be found in the dataset source repository
-        :raises DatasetDeletionException if there is an issue deleting the dataset from the source repository
+        :raises DatasetDeletionException: if there is an issue deleting the dataset from the source repository
         """
 
         logger.info(f"Starting create dataset process...")
@@ -123,7 +113,7 @@ class DatasetService:
             raise DatasetSourceEmptyException("No datasets found in the dataset source repository")
 
         # Validate the filename
-        if not self._validate_filename(dataset_filename):
+        if not dataset_filename.endswith(".json"):
             logger.warning(f"Filename: {dataset_filename} is not valid")
 
             # Delete the dataset

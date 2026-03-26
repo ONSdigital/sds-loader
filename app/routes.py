@@ -75,6 +75,12 @@ async def create_dataset(
 ):
     """
     This endpoint handles creating a dataset
+
+    A status 200 is returned in the following conditions:
+        - Dataset created successfully
+        - A non-critical exception is raised (e.g. no files to process)
+
+    A status 500 is returned if the process to create the dataset failed.
     """
 
     try:
