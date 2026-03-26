@@ -1,7 +1,9 @@
 
 import pytest
 
+from app.enums.delete_status import DeleteStatus
 from app.exceptions.dataset_deletion_empty_exception import DatasetDeletionEmptyException
+from app.exceptions.dataset_deletion_exception import DatasetDeletionException
 from app.exceptions.dataset_invalid_filename_exception import DatasetInvalidFilenameException
 from app.exceptions.dataset_not_found_exception import DatasetNotFoundException
 from app.exceptions.dataset_source_empty_exception import DatasetSourceEmptyException
@@ -833,6 +835,116 @@ class TestDeleteDataset:
         with pytest.raises(DatasetDeletionEmptyException):
             # Call delete_dataset method
             service.delete_dataset()
+
+    def test_raises_exception_and_updates_deletion_record_if_error_occurs_during_deletion(
+        self,
+        mock_dataset_source_repo: DatasetSourceRepositoryInterface,
+        mock_dataset_storage_repo: DatasetStorageRepositoryInterface,
+        mock_dataset_deletion_repo: DatasetDeletionRepositoryInterface,
+        mock_broadcaster,
+    ):
+        """
+        Test that if a problem occurs during deletion, a DatasetDeletionException is raised
+        and the deletion record is updated to "Error"
+        """
+
+        # ------------------------
+        # Dataset deletion repository mocks
+        # ------------------------
+
+        # Mock the dataset deletion repository to return a fake guid
+        mock_dataset_deletion_repo.get_dataset_to_delete.return_value = "123"
+
+        # ------------------------
+        # Dataset storage repository mocks
+        # ------------------------
+
+        def error():
+            raise Exception("Problem")
+
+        # Mock the delete method to throw some sort of error
+        mock_dataset_storage_repo.delete_dataset_by_guid.side_effect = error
+
+        # Create mock settings
+        class MockSettings:
+            autodelete_dataset = False
+            retain_old_datasets = False
+
+        # Create a DatasetService
+        service = DatasetService(
+            dataset_source_repo=mock_dataset_source_repo,
+            dataset_storage_repo=mock_dataset_storage_repo,
+            dataset_deletion_repo=mock_dataset_deletion_repo,
+            broadcaster=mock_broadcaster,
+            settings=MockSettings(),
+        )
+
+        # Assert the exception is raised
+        with pytest.raises(DatasetDeletionException):
+            # Call delete_dataset method
+            service.delete_dataset()
+
+        # Get the calls for the mock_dataset_deletion_repo
+        calls = mock_dataset_deletion_repo.mark_record_status.call_args_list
+
+        first_call = calls[0]
+        second_call = calls[1]
+
+        assert first_call.kwargs["guid"] == "123"
+        assert first_call.kwargs["status"] == DeleteStatus.PROCESSING
+
+        assert second_call.kwargs["guid"] == "123"
+        assert second_call.kwargs["status"] == DeleteStatus.ERROR
+
+    def test_successful_deletion_is_marked_correctly(
+        self,
+        mock_dataset_source_repo: DatasetSourceRepositoryInterface,
+        mock_dataset_storage_repo: DatasetStorageRepositoryInterface,
+        mock_dataset_deletion_repo: DatasetDeletionRepositoryInterface,
+        mock_broadcaster,
+    ):
+        """
+        Test that a successful deletion record is marked as "Deleted"
+        """
+
+        # ------------------------
+        # Dataset deletion repository mocks
+        # ------------------------
+
+        # Mock the dataset deletion repository to return a fake guid
+        mock_dataset_deletion_repo.get_dataset_to_delete.return_value = "123"
+
+        # Create mock settings
+        class MockSettings:
+            autodelete_dataset = False
+            retain_old_datasets = False
+
+        # Create a DatasetService
+        service = DatasetService(
+            dataset_source_repo=mock_dataset_source_repo,
+            dataset_storage_repo=mock_dataset_storage_repo,
+            dataset_deletion_repo=mock_dataset_deletion_repo,
+            broadcaster=mock_broadcaster,
+            settings=MockSettings(),
+        )
+
+        # Call delete_dataset method
+        service.delete_dataset()
+
+        # Get the calls for the mock_dataset_deletion_repo
+        calls = mock_dataset_deletion_repo.mark_record_status.call_args_list
+
+        first_call = calls[0]
+        second_call = calls[1]
+
+        assert first_call.kwargs["guid"] == "123"
+        assert first_call.kwargs["status"] == DeleteStatus.PROCESSING
+
+        assert second_call.kwargs["guid"] == "123"
+        assert second_call.kwargs["status"] == DeleteStatus.DELETED
+
+
+
 
 
 

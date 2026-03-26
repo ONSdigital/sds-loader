@@ -316,7 +316,7 @@ class DatasetService:
         try:
             self.dataset_storage_repo.delete_dataset_by_guid(dataset_guid_to_delete)
 
-        except DatasetDeletionException as e:
+        except (DatasetDeletionException, Exception) as e:
 
             logger.error("Error deleting dataset, updating delete record status to ERROR")
 
@@ -326,7 +326,7 @@ class DatasetService:
                 status=DeleteStatus.ERROR,
             )
 
-            raise e
+            raise DatasetDeletionException from e
 
         # Mark the deletion record as deleted
         self.dataset_deletion_repo.mark_record_status(

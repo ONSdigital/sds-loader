@@ -106,12 +106,18 @@ async def create_dataset(
     )
 
 
-@router.delete("/events/dataset/{dataset_id}")
+@router.get("/events/dataset/delete")
 async def delete_dataset(
     dataset_service: DatasetService = DEPS.depends(DatasetService)
 ):
     """
     This endpoint deletes a dataset
+
+    A status 200 is returned in the following conditions:
+        - Dataset deleted successfully
+        - A non-critical exception is raised (e.g. no datasets to delete)
+
+    A status 500 is returned if the process to delete the dataset failed.
     """
 
     try:
