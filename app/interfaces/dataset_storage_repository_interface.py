@@ -46,3 +46,21 @@ class DatasetStorageRepositoryInterface(ABC):
         :raises DatasetStoringException: if there is an issue storing the dataset
         """
         ...
+
+    @abstractmethod
+    def delete_dataset_version(
+        self,
+        survey_id: str,
+        period_id: str,
+        version: int
+    ):
+        """
+        Delete a specific version of the dataset from the repository
+
+        :param survey_id: survey id of the dataset to delete
+        :param period_id: period id of the dataset to delete
+        :param version: version of the dataset to delete
+
+        :raises DatasetDeletionException: if there is an issue removing the dataset
+        """
+        ...

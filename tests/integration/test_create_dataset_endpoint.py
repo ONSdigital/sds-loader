@@ -53,6 +53,7 @@ class TestCreateDatasetEndpoint:
             # For this test we set autodelete to True
             class MockSettings:
                 autodelete_dataset: bool = True
+                retain_old_datasets = False
 
             # Override the DatasetService dependencies with our mocks
             test_container[DatasetService] = DatasetService(
@@ -99,6 +100,7 @@ class TestCreateDatasetEndpoint:
             # For this test we set autodelete to True
             class MockSettings:
                 autodelete_dataset: bool = True
+                retain_old_datasets = False
 
             # Override the DatasetService dependencies with our mocks
             test_container[DatasetService] = DatasetService(
@@ -145,6 +147,7 @@ class TestCreateDatasetEndpoint:
             # For this test we set autodelete to True
             class MockSettings:
                 autodelete_dataset: bool = True
+                retain_old_datasets = False
 
             # Override the DatasetService dependencies with our mocks
             test_container[DatasetService] = DatasetService(

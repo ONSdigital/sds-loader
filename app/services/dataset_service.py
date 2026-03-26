@@ -99,7 +99,7 @@ class DatasetService:
         :raises DatasetMetadataRetrivalException: if there is an issue retrieving the latest dataset metadata from the dataset storage repository
         :raises DatasetStoringException: if there is an issue storing the new dataset in the dataset storage repository
         :raises DatasetNotFoundException: if the dataset to be created cannot be found in the dataset source repository
-        :raises DatasetDeletionException: if there is an issue deleting the dataset from the source repository
+        :raises DatasetDeletionException: if there is an issue deleting the dataset from either the source or storage repository
         """
 
         logger.info(f"Starting create dataset process...")
@@ -138,8 +138,10 @@ class DatasetService:
         if not raw_dataset:
             raise DatasetNotFoundException(f"{dataset_filename} could not be found in the dataset source repository")
 
-        # TODO should this be done in cleanup method?
-        # Delete the dataset
+        # Delete the dataset once we read it in
+        # as creating a new dataset can take a while, this avoids creating the same one twice?
+
+        # TODO rename file in bucket to another extension to solve this?
         self._autodelete_dataset(dataset_filename)
 
         # Process the new dataset
@@ -152,15 +154,15 @@ class DatasetService:
         now = datetime.datetime.now().strftime("%Y-%m-%dT%H:%M:%SZ")
 
         # Get the latest dataset based on survey_id and period_id
-        latest_dataset: DatasetMetadataWithoutId = self.dataset_storage_repo.get_latest_dataset_metadata(
+        current_dataset: DatasetMetadataWithoutId = self.dataset_storage_repo.get_latest_dataset_metadata(
             raw_dataset.survey_id, raw_dataset.period_id
         )
 
         # Determine next dataset version based on the latest dataset version
-        if latest_dataset:
+        if current_dataset:
             logger.info(
-                f"Found previous dataset version: {latest_dataset.sds_dataset_version} for survey {raw_dataset.survey_id}, period {raw_dataset.period_id}, incrementing version for new dataset")
-            new_version = latest_dataset.sds_dataset_version + 1
+                f"Found previous dataset version: {current_dataset.sds_dataset_version} for survey {raw_dataset.survey_id}, period {raw_dataset.period_id}, incrementing version for new dataset")
+            new_version = current_dataset.sds_dataset_version + 1
         else:
             logger.info(
                 f"Could not find a previous dataset version for survey {raw_dataset.survey_id}, period {raw_dataset.period_id}, setting version to 1")
@@ -224,30 +226,61 @@ class DatasetService:
         logger.info(f"Cleaning up for: {dataset_id}")
 
         # Cleanup any other versions of the dataset if necessary
-        self._cleanup(
-            survey_id=dataset_metadata.survey_id,
-            period_id=dataset_metadata.period_id,
-            version=new_dataset_metadata.sds_dataset_version,
-        )
+        # we only need to attempt a cleanup if this is a new dataset version
+        # i.e. current_dataset is not None
+        if current_dataset:
+            self._cleanup(
+                survey_id=dataset_metadata.survey_id,
+                period_id=dataset_metadata.period_id,
+                new_version=new_dataset_metadata.sds_dataset_version,
+                older_version=current_dataset.sds_dataset_version,
+            )
 
-        logger.info(f"Dataset creation process completed: {dataset_id}")
+            logger.info(f"Dataset creation process completed: {dataset_id}")
 
     def _cleanup(
         self,
         survey_id: str,
         period_id: str,
-        version: int
+        new_version: int,
+        older_version: int
     ):
         """
         Determine if the other versions of the dataset should be deleted
+
+        :param survey_id: Survey ID of the new dataset
+        :param period_id: Period ID of the new dataset
+        :param new_version: The version of the newly created dataset
+        :param older_version: The version of the latest dataset before the newly created version
+
+        :raises DatasetDeletionException if an error occurs deleting the dataset from the storage repository
         """
 
-        # TODO cleanup
-        pass
+        # Delete the previous version if the retention flag is false and this is not v1
+        if not self.settings.retain_old_datasets and new_version > 1:
+
+            # Delete the old version
+            self.dataset_storage_repo.delete_dataset_version(
+                survey_id=survey_id,
+                period_id=period_id,
+                version=older_version
+            )
+
+            logger.info(f"Older Dataset deleted successfully: survey: {survey_id}, period: {period_id}, version: {older_version}")
+        else:
+            logger.info("Nothing to cleanup")
 
     def delete_dataset(self):
         """
         Delete a dataset marked for deletion (only one)
+
+        TODO refactor this doc
+
+        1. Fetch the GUID and marked_id from the storage repository (firestore)
+            - The GUID is the guid of the dataset to be deleted
+            - The marked_id is the id in the "marked_for_deletion" collection
+        2. If the GUID is None
+            - Skip the process as no records have been found to delete
         """
 
         # Fetch a single dataset guid from the marked_for_deletion collection in firestore

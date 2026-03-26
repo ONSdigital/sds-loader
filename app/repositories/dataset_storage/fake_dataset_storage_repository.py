@@ -32,3 +32,13 @@ class FakeDatasetStorageRepository(DatasetStorageRepositoryInterface):
             unit_data_collection_with_metadata,
             unit_data_identifiers
         ]
+
+    def delete_dataset_version(self, survey_id: str, period_id: str, version: int):
+        dataset_key = (survey_id, period_id)
+        datasets = self.datasets.get(dataset_key)
+
+        if len(datasets) == 0:
+            return
+
+        # Remove the dataset with specified version from the list
+        self.datasets[dataset_key] = [dataset for dataset in datasets if dataset[1].sds_dataset_version != version]
