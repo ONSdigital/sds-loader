@@ -282,9 +282,7 @@ class DatasetService:
         """
         Delete a dataset marked for deletion (only one)
 
-        TODO refactor this doc
-
-        1. Fetch the GUID for a dataset that is marked for deletion (from the storage repository) either PROCESSING OR PENDING
+        1. Fetch the GUID for a dataset that is marked for deletion (from the dataset_deletion repository) either PROCESSING OR PENDING
         2. If the GUID is None
             - Skip the process as no records have been found to delete
         3. Mark the deletion record as "PROCESSING" before we begin a delete
