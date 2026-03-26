@@ -8,5 +8,6 @@ class DeleteStatus(Enum):
     """
 
     PROCESSING = "processing"
+    PENDING = "pending"
     ERROR = "error"
     DELETED = "deleted"
