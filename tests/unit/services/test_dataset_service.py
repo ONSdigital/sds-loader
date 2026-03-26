@@ -1,6 +1,7 @@
 
 import pytest
 
+from app.exceptions.dataset_deletion_empty_exception import DatasetDeletionEmptyException
 from app.exceptions.dataset_invalid_filename_exception import DatasetInvalidFilenameException
 from app.exceptions.dataset_not_found_exception import DatasetNotFoundException
 from app.exceptions.dataset_source_empty_exception import DatasetSourceEmptyException
@@ -10,7 +11,7 @@ from app.interfaces.dataset_deletion_repository_interface import DatasetDeletion
 from app.interfaces.dataset_source_repository_interface import DatasetSourceRepositoryInterface
 from app.interfaces.dataset_storage_repository_interface import DatasetStorageRepositoryInterface
 from app.models.dataset import DatasetMetadataWithoutId, DatasetMetadata
-from app.services.dataset_service import DatasetService, DatasetSettings
+from app.services.dataset_service import DatasetService
 
 
 class TestCreateDataset:
@@ -792,6 +793,46 @@ class TestCreateDataset:
         # Assert the dataset_storage_repo.delete_dataset_version method was NOT called
         mock_dataset_storage_repo.delete_dataset_version.assert_not_called()
 
+
+class TestDeleteDataset:
+
+    def test_raises_exception_if_no_datasets_to_delete(
+        self,
+        mock_dataset_source_repo: DatasetSourceRepositoryInterface,
+        mock_dataset_storage_repo: DatasetStorageRepositoryInterface,
+        mock_dataset_deletion_repo: DatasetDeletionRepositoryInterface,
+        mock_broadcaster,
+    ):
+        """
+        Test that if there are no delete records, a DatasetDeletionEmptyException is raised
+        """
+
+        # ------------------------
+        # Dataset deletion repository mocks
+        # ------------------------
+
+        # Mock the dataset deletion repository to return None (no records)
+        mock_dataset_deletion_repo.get_dataset_to_delete.return_value = None
+
+        # Create mock settings
+        class MockSettings:
+            autodelete_dataset = False
+            retain_old_datasets = False
+
+        # Create a DatasetService
+        service = DatasetService(
+            dataset_source_repo=mock_dataset_source_repo,
+            dataset_storage_repo=mock_dataset_storage_repo,
+            dataset_deletion_repo=mock_dataset_deletion_repo,
+            broadcaster=mock_broadcaster,
+            settings=MockSettings(),
+        )
+
+
+        # Assert the exception is raised
+        with pytest.raises(DatasetDeletionEmptyException):
+            # Call delete_dataset method
+            service.delete_dataset()
 
 
 
