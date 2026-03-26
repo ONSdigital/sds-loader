@@ -11,6 +11,7 @@ from sdx_base.server.tx_id import txid_not_applicable
 from sdx_base.settings.app import AppSettings
 
 from app.factories.dataset_factories import RawDatasetFactory, DatasetMetadataWithoutIdFactory
+from app.interfaces.dataset_deletion_repository_interface import DatasetDeletionRepositoryInterface
 from app.interfaces.dataset_source_repository_interface import DatasetSourceRepositoryInterface
 from app.interfaces.dataset_storage_repository_interface import DatasetStorageRepositoryInterface
 from app.models.dataset import DatasetMetadata
@@ -95,6 +96,11 @@ def mock_bucket_publisher() -> MockPublisher:
 @pytest.fixture
 def mock_dataset_source_repo() -> DatasetSourceRepositoryInterface:
     return create_autospec(DatasetSourceRepositoryInterface)
+
+
+@pytest.fixture
+def mock_dataset_deletion_repo() -> DatasetDeletionRepositoryInterface:
+    return create_autospec(DatasetDeletionRepositoryInterface)
 
 
 @pytest.fixture

@@ -14,6 +14,7 @@ class TestCreateDatasetEndpoint:
         test_app: FastAPI,
         mock_dataset_source_repo,
         mock_dataset_storage_repo,
+        mock_dataset_deletion_repo,
         mock_broadcaster: MockBroadcaster,
         raw_dataset_factory: RawDatasetFactory
     ):
@@ -59,6 +60,7 @@ class TestCreateDatasetEndpoint:
             test_container[DatasetService] = DatasetService(
                 dataset_source_repo=mock_dataset_source_repo,
                 dataset_storage_repo=mock_dataset_storage_repo,
+                dataset_deletion_repo=mock_dataset_deletion_repo,
                 broadcaster=mock_broadcaster,
                 settings=MockSettings()
             )
@@ -79,6 +81,7 @@ class TestCreateDatasetEndpoint:
         test_app: FastAPI,
         mock_dataset_source_repo,
         mock_dataset_storage_repo,
+        mock_dataset_deletion_repo,
         mock_broadcaster: MockBroadcaster,
     ):
         """
@@ -106,6 +109,7 @@ class TestCreateDatasetEndpoint:
             test_container[DatasetService] = DatasetService(
                 dataset_source_repo=mock_dataset_source_repo,
                 dataset_storage_repo=mock_dataset_storage_repo,
+                dataset_deletion_repo=mock_dataset_deletion_repo,
                 broadcaster=mock_broadcaster,
                 settings=MockSettings()
             )
@@ -126,6 +130,7 @@ class TestCreateDatasetEndpoint:
         test_app: FastAPI,
         mock_dataset_source_repo,
         mock_dataset_storage_repo,
+        mock_dataset_deletion_repo,
         mock_broadcaster: MockBroadcaster,
     ):
         """
@@ -153,6 +158,7 @@ class TestCreateDatasetEndpoint:
             test_container[DatasetService] = DatasetService(
                 dataset_source_repo=mock_dataset_source_repo,
                 dataset_storage_repo=mock_dataset_storage_repo,
+                dataset_deletion_repo=mock_dataset_deletion_repo,
                 broadcaster=mock_broadcaster,
                 settings=MockSettings()
             )

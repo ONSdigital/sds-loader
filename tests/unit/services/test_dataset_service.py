@@ -6,10 +6,11 @@ from app.exceptions.dataset_not_found_exception import DatasetNotFoundException
 from app.exceptions.dataset_source_empty_exception import DatasetSourceEmptyException
 from app.exceptions.dataset_validation_exception import DatasetValidationException
 from app.factories.dataset_factories import RawDatasetFactory, DatasetMetadataWithoutIdFactory
+from app.interfaces.dataset_deletion_repository_interface import DatasetDeletionRepositoryInterface
 from app.interfaces.dataset_source_repository_interface import DatasetSourceRepositoryInterface
 from app.interfaces.dataset_storage_repository_interface import DatasetStorageRepositoryInterface
 from app.models.dataset import DatasetMetadataWithoutId, DatasetMetadata
-from app.services.dataset_service import DatasetService
+from app.services.dataset_service import DatasetService, DatasetSettings
 
 
 class TestCreateDataset:
@@ -18,6 +19,7 @@ class TestCreateDataset:
         self,
         mock_dataset_source_repo: DatasetSourceRepositoryInterface,
         mock_dataset_storage_repo: DatasetStorageRepositoryInterface,
+        mock_dataset_deletion_repo: DatasetDeletionRepositoryInterface,
         mock_broadcaster
     ):
         """
@@ -37,6 +39,7 @@ class TestCreateDataset:
         service = DatasetService(
             dataset_source_repo=mock_dataset_source_repo,
             dataset_storage_repo=mock_dataset_storage_repo,
+            dataset_deletion_repo=mock_dataset_deletion_repo,
             broadcaster=mock_broadcaster,
             settings=MockSettings(),
         )
@@ -50,6 +53,7 @@ class TestCreateDataset:
         self,
         mock_dataset_source_repo: DatasetSourceRepositoryInterface,
         mock_dataset_storage_repo: DatasetStorageRepositoryInterface,
+        mock_dataset_deletion_repo: DatasetDeletionRepositoryInterface,
         mock_broadcaster
     ):
         """
@@ -69,6 +73,7 @@ class TestCreateDataset:
         service = DatasetService(
             dataset_source_repo=mock_dataset_source_repo,
             dataset_storage_repo=mock_dataset_storage_repo,
+            dataset_deletion_repo=mock_dataset_deletion_repo,
             broadcaster=mock_broadcaster,
             settings=MockSettings(),
         )
@@ -84,6 +89,7 @@ class TestCreateDataset:
         self,
         mock_dataset_source_repo: DatasetSourceRepositoryInterface,
         mock_dataset_storage_repo: DatasetStorageRepositoryInterface,
+        mock_dataset_deletion_repo: DatasetDeletionRepositoryInterface,
         mock_broadcaster
     ):
         """
@@ -103,6 +109,7 @@ class TestCreateDataset:
         service = DatasetService(
             dataset_source_repo=mock_dataset_source_repo,
             dataset_storage_repo=mock_dataset_storage_repo,
+            dataset_deletion_repo=mock_dataset_deletion_repo,
             broadcaster=mock_broadcaster,
             settings=MockSettings(),
         )
@@ -118,6 +125,7 @@ class TestCreateDataset:
         self,
         mock_dataset_source_repo: DatasetSourceRepositoryInterface,
         mock_dataset_storage_repo: DatasetStorageRepositoryInterface,
+        mock_dataset_deletion_repo: DatasetDeletionRepositoryInterface,
         mock_broadcaster
     ):
         """
@@ -140,6 +148,7 @@ class TestCreateDataset:
         service = DatasetService(
             dataset_source_repo=mock_dataset_source_repo,
             dataset_storage_repo=mock_dataset_storage_repo,
+            dataset_deletion_repo=mock_dataset_deletion_repo,
             broadcaster=mock_broadcaster,
             settings=MockSettings(),
         )
@@ -155,6 +164,7 @@ class TestCreateDataset:
         self,
         mock_dataset_source_repo: DatasetSourceRepositoryInterface,
         mock_dataset_storage_repo: DatasetStorageRepositoryInterface,
+        mock_dataset_deletion_repo: DatasetDeletionRepositoryInterface,
         mock_broadcaster
     ):
         """
@@ -177,6 +187,7 @@ class TestCreateDataset:
         service = DatasetService(
             dataset_source_repo=mock_dataset_source_repo,
             dataset_storage_repo=mock_dataset_storage_repo,
+            dataset_deletion_repo=mock_dataset_deletion_repo,
             broadcaster=mock_broadcaster,
             settings=MockSettings(),
         )
@@ -192,6 +203,7 @@ class TestCreateDataset:
         self,
         mock_dataset_source_repo: DatasetSourceRepositoryInterface,
         mock_dataset_storage_repo: DatasetStorageRepositoryInterface,
+        mock_dataset_deletion_repo: DatasetDeletionRepositoryInterface,
         mock_broadcaster
     ):
         """
@@ -214,6 +226,7 @@ class TestCreateDataset:
         service = DatasetService(
             dataset_source_repo=mock_dataset_source_repo,
             dataset_storage_repo=mock_dataset_storage_repo,
+            dataset_deletion_repo=mock_dataset_deletion_repo,
             broadcaster=mock_broadcaster,
             settings=MockSettings(),
         )
@@ -226,6 +239,7 @@ class TestCreateDataset:
         self,
         mock_dataset_source_repo: DatasetSourceRepositoryInterface,
         mock_dataset_storage_repo: DatasetStorageRepositoryInterface,
+        mock_dataset_deletion_repo: DatasetDeletionRepositoryInterface,
         mock_broadcaster,
         raw_dataset_factory: RawDatasetFactory,
         dataset_metadata_without_id_factory: DatasetMetadataWithoutIdFactory
@@ -262,6 +276,7 @@ class TestCreateDataset:
         service = DatasetService(
             dataset_source_repo=mock_dataset_source_repo,
             dataset_storage_repo=mock_dataset_storage_repo,
+            dataset_deletion_repo=mock_dataset_deletion_repo,
             broadcaster=mock_broadcaster,
             settings=MockSettings(),
         )
@@ -276,6 +291,7 @@ class TestCreateDataset:
         self,
         mock_dataset_source_repo: DatasetSourceRepositoryInterface,
         mock_dataset_storage_repo: DatasetStorageRepositoryInterface,
+        mock_dataset_deletion_repo: DatasetDeletionRepositoryInterface,
         mock_broadcaster,
         raw_dataset_factory: RawDatasetFactory,
         dataset_metadata_without_id_factory: DatasetMetadataWithoutIdFactory
@@ -311,6 +327,7 @@ class TestCreateDataset:
         service = DatasetService(
             dataset_source_repo=mock_dataset_source_repo,
             dataset_storage_repo=mock_dataset_storage_repo,
+            dataset_deletion_repo=mock_dataset_deletion_repo,
             broadcaster=mock_broadcaster,
             settings=MockSettings(),
         )
@@ -325,6 +342,7 @@ class TestCreateDataset:
         self,
         mock_dataset_source_repo: DatasetSourceRepositoryInterface,
         mock_dataset_storage_repo: DatasetStorageRepositoryInterface,
+        mock_dataset_deletion_repo: DatasetDeletionRepositoryInterface,
         mock_broadcaster,
         raw_dataset_factory: RawDatasetFactory,
         dataset_metadata_without_id_factory: DatasetMetadataWithoutIdFactory
@@ -372,6 +390,7 @@ class TestCreateDataset:
         service = DatasetService(
             dataset_source_repo=mock_dataset_source_repo,
             dataset_storage_repo=mock_dataset_storage_repo,
+            dataset_deletion_repo=mock_dataset_deletion_repo,
             broadcaster=mock_broadcaster,
             settings=MockSettings(),
         )
@@ -397,6 +416,7 @@ class TestCreateDataset:
         self,
         mock_dataset_source_repo: DatasetSourceRepositoryInterface,
         mock_dataset_storage_repo: DatasetStorageRepositoryInterface,
+        mock_dataset_deletion_repo: DatasetDeletionRepositoryInterface,
         mock_broadcaster,
         raw_dataset_factory: RawDatasetFactory,
     ):
@@ -439,6 +459,7 @@ class TestCreateDataset:
         service = DatasetService(
             dataset_source_repo=mock_dataset_source_repo,
             dataset_storage_repo=mock_dataset_storage_repo,
+            dataset_deletion_repo=mock_dataset_deletion_repo,
             broadcaster=mock_broadcaster,
             settings=MockSettings(),
         )
@@ -464,6 +485,7 @@ class TestCreateDataset:
         self,
         mock_dataset_source_repo: DatasetSourceRepositoryInterface,
         mock_dataset_storage_repo: DatasetStorageRepositoryInterface,
+        mock_dataset_deletion_repo: DatasetDeletionRepositoryInterface,
         mock_broadcaster,
         raw_dataset_factory: RawDatasetFactory
     ):
@@ -520,6 +542,7 @@ class TestCreateDataset:
         service = DatasetService(
             dataset_source_repo=mock_dataset_source_repo,
             dataset_storage_repo=mock_dataset_storage_repo,
+            dataset_deletion_repo=mock_dataset_deletion_repo,
             broadcaster=mock_broadcaster,
             settings=MockSettings(),
         )
@@ -572,6 +595,7 @@ class TestCreateDataset:
         self,
         mock_dataset_source_repo: DatasetSourceRepositoryInterface,
         mock_dataset_storage_repo: DatasetStorageRepositoryInterface,
+        mock_dataset_deletion_repo: DatasetDeletionRepositoryInterface,
         mock_broadcaster,
         raw_dataset_factory: RawDatasetFactory,
     ):
@@ -613,6 +637,7 @@ class TestCreateDataset:
         service = DatasetService(
             dataset_source_repo=mock_dataset_source_repo,
             dataset_storage_repo=mock_dataset_storage_repo,
+            dataset_deletion_repo=mock_dataset_deletion_repo,
             broadcaster=mock_broadcaster,
             settings=MockSettings(),
         )
@@ -636,6 +661,7 @@ class TestCreateDataset:
         self,
         mock_dataset_source_repo: DatasetSourceRepositoryInterface,
         mock_dataset_storage_repo: DatasetStorageRepositoryInterface,
+        mock_dataset_deletion_repo: DatasetDeletionRepositoryInterface,
         mock_broadcaster,
         raw_dataset_factory: RawDatasetFactory,
         dataset_metadata_without_id_factory: DatasetMetadataWithoutIdFactory
@@ -683,6 +709,7 @@ class TestCreateDataset:
         service = DatasetService(
             dataset_source_repo=mock_dataset_source_repo,
             dataset_storage_repo=mock_dataset_storage_repo,
+            dataset_deletion_repo=mock_dataset_deletion_repo,
             broadcaster=mock_broadcaster,
             settings=MockSettings(),
         )
@@ -706,6 +733,7 @@ class TestCreateDataset:
         self,
         mock_dataset_source_repo: DatasetSourceRepositoryInterface,
         mock_dataset_storage_repo: DatasetStorageRepositoryInterface,
+        mock_dataset_deletion_repo: DatasetDeletionRepositoryInterface,
         mock_broadcaster,
         raw_dataset_factory: RawDatasetFactory,
         dataset_metadata_without_id_factory: DatasetMetadataWithoutIdFactory
@@ -753,6 +781,7 @@ class TestCreateDataset:
         service = DatasetService(
             dataset_source_repo=mock_dataset_source_repo,
             dataset_storage_repo=mock_dataset_storage_repo,
+            dataset_deletion_repo=mock_dataset_deletion_repo,
             broadcaster=mock_broadcaster,
             settings=MockSettings(),
         )
