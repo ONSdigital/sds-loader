@@ -1,6 +1,7 @@
 from typing import Optional
 
 from app.models import AllowExtraBase
+from app.models.guid import Guid
 
 
 class RawDatasetDataItem(AllowExtraBase):
@@ -28,7 +29,7 @@ class UnitDataset(AllowExtraBase):
     Represents a unit from the datasets "data" block
     along with metadata from the parent dataset
     """
-    dataset_id: str
+    dataset_id: Guid
     survey_id: str
     period_id: str
     form_types: list[str]
@@ -54,7 +55,7 @@ class DatasetMetadata(AllowExtraBase):
     """
     Represents metadata about a dataset
     """
-    dataset_id: str
+    dataset_id: Guid
     survey_id: str
     period_id: str
     form_types: list[str]

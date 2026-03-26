@@ -3,13 +3,16 @@ import uuid
 from typing import Protocol
 
 from app import get_logger
+from app.exceptions.dataset_marked_for_deletion_empty_exception import DatasetMarkedForDeletionEmptyException
 from app.exceptions.dataset_not_found_exception import DatasetNotFoundException
 from app.exceptions.dataset_validation_exception import DatasetValidationException
 from app.exceptions.dataset_source_empty_exception import DatasetSourceEmptyException
 from app.exceptions.dataset_invalid_filename_exception import DatasetInvalidFilenameException
+from app.interfaces.dataset_deletion_repository_interface import DatasetDeletionRepositoryInterface
 from app.interfaces.dataset_source_repository_interface import DatasetSourceRepositoryInterface
 from app.interfaces.dataset_storage_repository_interface import DatasetStorageRepositoryInterface
 from app.models.dataset import RawDataset, DatasetMetadataWithoutId, UnitDataset, DatasetMetadata
+from app.models.guid import Guid
 
 logger = get_logger()
 
@@ -43,11 +46,13 @@ class DatasetService:
         self,
         dataset_source_repo: DatasetSourceRepositoryInterface,
         dataset_storage_repo: DatasetStorageRepositoryInterface,
+        dataset_deletion_repo: DatasetDeletionRepositoryInterface,
         broadcaster: BroadcastProtocol,
         settings: DatasetSettings
     ):
         self.dataset_source_repo = dataset_source_repo
         self.dataset_storage_repo = dataset_storage_repo
+        self.dataset_deletion_repo = dataset_deletion_repo
         self.broadcaster = broadcaster
         self.settings = settings
 
@@ -148,7 +153,7 @@ class DatasetService:
         logger.info("Creating new dataset ...")
 
         # Generate Guid
-        dataset_id = str(uuid.uuid4())
+        dataset_id: Guid = str(uuid.uuid4())
 
         # Generate a current timestamp
         now = datetime.datetime.now().strftime("%Y-%m-%dT%H:%M:%SZ")
@@ -276,18 +281,33 @@ class DatasetService:
 
         TODO refactor this doc
 
-        1. Fetch the GUID and marked_id from the storage repository (firestore)
-            - The GUID is the guid of the dataset to be deleted
-            - The marked_id is the id in the "marked_for_deletion" collection
+        1. Fetch the GUID for a dataset that is marked for deletion (from the storage repository)
         2. If the GUID is None
             - Skip the process as no records have been found to delete
+        3. Then check a record actually exists for this GUID
+            - If a record does not exist, update the deletion record to be an error
+        4. If the record does exist, mark the delete record as processing
+        5. Delete the dataset
+        6. When the delete process finishes, update the deletion record to be "deleted"
+
+        :raises DatasetMarkedForDeletionEmptyException: if there are no datasets marked for deletion in the storage repository (non critical)
         """
 
-        # Fetch a single dataset guid from the marked_for_deletion collection in firestore
+        # Fetch a single dataset guid "marked for deletion" from the dataset_deletion_repo (firestore)
+        dataset_guid_to_delete: Guid = self.dataset_deletion_repo.get_dataset_to_delete()
 
-        # Get the dataset document based on this guid
+        if not dataset_guid_to_delete:
+            logger.info("No datasets marked for deletion (skipping process)")
+            raise DatasetMarkedForDeletionEmptyException(
+                "No datasets marked for deletion in the storage repository"
+            )
+
+        # Check a record actually exists for this guid in the storage repository
+
+        # TODO combine above and below into same step but raise exception
+        # Get the dataset document based on this guid from the storage repository
 
         # Delete the document
 
-        # Update the status of the record in marked_for_deletion collection to deleted
+        # Update the status of the record in dataset_deletion_repo to deleted
         pass

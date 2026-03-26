@@ -1,6 +1,7 @@
 from abc import ABC, abstractmethod
 
 from app.models.dataset import DatasetMetadataWithoutId, UnitDataset
+from app.models.guid import Guid
 
 
 class DatasetStorageRepositoryInterface(ABC):
@@ -30,7 +31,7 @@ class DatasetStorageRepositoryInterface(ABC):
     @abstractmethod
     def store_dataset(
         self,
-        dataset_id: str,
+        dataset_id: Guid,
         dataset_metadata: DatasetMetadataWithoutId,
         unit_data_collection_with_metadata: list[UnitDataset],
         unit_data_identifiers: list[str],
