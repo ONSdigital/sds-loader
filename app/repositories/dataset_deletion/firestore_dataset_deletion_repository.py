@@ -50,12 +50,23 @@ class FirestoreDatasetDeletionRepository(DatasetDeletionRepositoryInterface):
         # If for some reason the guid is not in the cache, query firestore for it
         if not doc_id:
 
-            logger.warning(f"Marking record with guid that is not in repository cache: {guid}")
-            # TODO fetch
-            pass
+            logger.warning(f"Marking record with guid that is not in repository cache: {guid}, looking in firestore...")
+
+            results = (
+                self.mark_deletion_collection
+                .where("dataset_guid", "==", guid)
+                .limit(1)
+                .stream()
+            )
+
+            results_list = list(results)
+
+            if len(results_list) > 0:
+                doc_id = results_list[0].id
+            else:
+                raise DatasetDeletionMarkException(f"Could not mark record with guid {guid} as a record with this guid could not be found")
 
         try:
-
             # Update the status of this record in firestore
             document_reference = self.mark_deletion_collection.document(doc_id)
             document_reference.update({"status": status})
