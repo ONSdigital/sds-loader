@@ -28,5 +28,7 @@ class DatasetDeletionRepositoryInterface(ABC):
 
         :param guid: The guid of the dataset deletion record to mark
         :param status: The DeleteStatus to mark the record with
+
+        :raises DatasetDeletionMarkException: If there is an issue marking the record with the given status
         """
         ...
