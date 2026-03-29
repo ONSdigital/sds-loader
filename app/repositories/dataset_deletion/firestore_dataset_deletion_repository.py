@@ -13,9 +13,9 @@ from app.models.guid import Guid
 logger = get_logger()
 
 
-class FirestoreConfig(Protocol):
+class FirestoreSettings(Protocol):
     project_id: str
-    database: str
+    firestore_database: str
 
 
 class FirestoreDatasetDeletionRepository(DatasetDeletionRepositoryInterface):
@@ -26,14 +26,14 @@ class FirestoreDatasetDeletionRepository(DatasetDeletionRepositoryInterface):
 
     def __init__(
         self,
-        settings: FirestoreConfig,
+        settings: FirestoreSettings,
     ):
         self.settings = settings
 
         # Create a firestore client
         self.client = firestore.Client(
             project=self.settings.project_id,
-            database=self.settings.database
+            database=self.settings.firestore_database
         )
 
         # Initialize Firestore collections

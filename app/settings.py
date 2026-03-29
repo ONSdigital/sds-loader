@@ -21,6 +21,8 @@ class QuickSettings(BaseSettings):
 class Settings(AppSettings):
     project_id: str
     autodelete_dataset: bool
+    dataset_bucket_name: str
+    firestore_database: str
 
 
 def get_instance() -> Settings:

@@ -1,11 +1,15 @@
-from lagom import Singleton
+from lagom import Singleton, dependency_definition
 from lagom.container import Container
 from sds_common.publishers.gcs_schema_publisher import GcsSchemaPublisher
 from sds_common.publishers.github_schema_publisher import GithubSchemaPublisher
+from sdx_base.services.storage import StorageService
 
+from app.interfaces.dataset_deletion_repository_interface import DatasetDeletionRepositoryInterface
 from app.interfaces.dataset_source_repository_interface import DatasetSourceRepositoryInterface
 from app.interfaces.dataset_storage_repository_interface import DatasetStorageRepositoryInterface
 from app.models.dataset import DatasetMetadata
+from app.repositories.dataset_deletion.fake_dataset_deletion_repository import FakeDatasetDeletionRepository
+from app.repositories.dataset_deletion.firestore_dataset_deletion_repository import FirestoreDatasetDeletionRepository
 from app.repositories.dataset_source.bucket_dataset_source_repository import BucketDatasetSourceRepository
 from app.repositories.dataset_source.fake_dataset_source_repository import FakeDatasetSourceRepository
 from app.repositories.dataset_storage.fake_dataset_storage_repository import FakeDatasetStorageRepository
@@ -56,6 +60,14 @@ def build_container() -> Container:
     # -----------------------------
 
     if is_prod:
+
+        @dependency_definition(container)
+        def build_bucket_dataset_source_repository() -> BucketDatasetSourceRepository:
+            return BucketDatasetSourceRepository(
+                bucket_reader=StorageService(),
+                settings=container[Settings]
+            )
+
         container[DatasetSourceRepositoryInterface] = BucketDatasetSourceRepository
 
     else:
@@ -66,9 +78,30 @@ def build_container() -> Container:
     # -----------------------------
 
     if is_prod:
+
+        @dependency_definition(container)
+        def build_firestore_dataset_storage_repository() -> FirestoreDatasetStorageRepository:
+            return FirestoreDatasetStorageRepository()
+
         container[DatasetStorageRepositoryInterface] = FirestoreDatasetStorageRepository
     else:
         container[DatasetStorageRepositoryInterface] = FakeDatasetStorageRepository
+
+    # -----------------------------
+    # DatasetDeletionRepositoryInterface
+    # -----------------------------
+
+    if is_prod:
+
+        @dependency_definition(container)
+        def build_firestore_dataset_deletion_repository() -> FirestoreDatasetDeletionRepository:
+            return FirestoreDatasetDeletionRepository(
+                settings=container[Settings]
+            )
+
+        container[DatasetDeletionRepositoryInterface] = FirestoreDatasetDeletionRepository
+    else:
+        container[DatasetDeletionRepositoryInterface] = FakeDatasetDeletionRepository
 
     # -----------------------------
     # Protocols
