@@ -104,6 +104,13 @@ def build_container() -> Container:
     # -----------------------------
 
     if is_prod:
+
+        @dependency_definition(container)
+        def build_pubsub_broadcaster() -> PubsubBroadcaster:
+            return PubsubBroadcaster(
+                settings=container[Settings]
+            )
+
         container[DatasetBroadcastInterface] = PubsubBroadcaster
     else:
         container[DatasetBroadcastInterface] = FakeBroadcaster

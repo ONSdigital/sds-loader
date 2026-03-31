@@ -23,6 +23,7 @@ class Settings(AppSettings):
     autodelete_dataset: bool
     dataset_bucket_name: str
     firestore_database: str
+    publish_dataset_topic_id: str
 
 
 def get_instance() -> Settings:
