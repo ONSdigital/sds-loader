@@ -1,9 +1,9 @@
-import json
 from typing import Protocol
 
 from google.cloud import firestore
 
 from app import get_logger
+from app.exceptions.dataset_deletion_exception import DatasetDeletionException
 from app.interfaces.dataset_storage_repository_interface import DatasetStorageRepositoryInterface
 from app.models.dataset import DatasetMetadataWithoutId, UnitDataset, DatasetMetadata
 from app.models.guid import Guid
@@ -40,7 +40,6 @@ class FirestoreDatasetStorageRepository(DatasetStorageRepositoryInterface):
         # Initialize Firestore collections
         self.dataset_collection = self.client.collection("datasets")
 
-
     def get_latest_dataset_metadata(
         self,
         survey_id: str,
@@ -63,7 +62,6 @@ class FirestoreDatasetStorageRepository(DatasetStorageRepositoryInterface):
             return None
 
         return DatasetMetadataWithoutId.model_validate(datasets[0])
-
 
     def _get_dataset_metadata(
         self,
@@ -113,32 +111,29 @@ class FirestoreDatasetStorageRepository(DatasetStorageRepositoryInterface):
         dataset_metadata = self._get_dataset_metadata(survey_id, period_id, version)
 
         if not dataset_metadata:
-            logger.error("Previous version of dataset is not found. Cannot delete.")
-            raise RuntimeError(
-                "Previous version of dataset is not found. Cannot delete."
-            )
+            logger.warning("Attempting delete dataset previous version, but it could not be found.")
+            return
 
         try:
-            dataset_id = dataset_metadata.dataset_id
-
-            self.delete_dataset_by_guid(dataset_id)
-
-            logger.info("Previous version of dataset deleted succesfully.")
+            self.delete_dataset_by_guid(dataset_metadata.dataset_id)
+            logger.info("Previous version of dataset deleted successfully.")
 
         except Exception as e:
             logger.error(
                 f"Failed to delete previous version of dataset from firestore.: {e}"
             )
-            raise RuntimeError(
+            raise DatasetDeletionException(
                 "Failed to delete previous version of dataset from firestore."
             ) from e
 
-
     def delete_dataset_by_guid(self, guid: Guid):
+
+        # Get all the collections for this dataset
         collections = self.dataset_collection.document(guid).collections()
 
         # Delete each collection
         for collection in collections:
             collection.recursive_delete()
 
+        # Delete the dataset itself
         self.dataset_collection.document(guid).delete()
