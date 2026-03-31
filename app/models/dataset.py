@@ -8,7 +8,7 @@ class RawDatasetDataItem(AllowExtraBase):
     """
     Represents an item in the "data" block of the raw dataset
     """
-    unit_data: list | dict  # TODO figure out which one
+    unit_data: list | dict
     identifier: str
 
 
