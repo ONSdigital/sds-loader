@@ -81,7 +81,9 @@ def build_container() -> Container:
 
         @dependency_definition(container)
         def build_firestore_dataset_storage_repository() -> FirestoreDatasetStorageRepository:
-            return FirestoreDatasetStorageRepository()
+            return FirestoreDatasetStorageRepository(
+                settings=container[Settings]
+            )
 
         container[DatasetStorageRepositoryInterface] = FirestoreDatasetStorageRepository
     else:

@@ -7,3 +7,4 @@
 - write production bucket repo
 - write production broadcaster
 - Multi files at once
+- Add async to all firestore repos
