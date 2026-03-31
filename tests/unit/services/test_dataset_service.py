@@ -15,6 +15,7 @@ from app.interfaces.dataset_source_repository_interface import DatasetSourceRepo
 from app.interfaces.dataset_storage_repository_interface import DatasetStorageRepositoryInterface
 from app.models.dataset import DatasetMetadataWithoutId, DatasetMetadata
 from app.services.dataset_service import DatasetService
+from tests.conftest import MockBroadcaster
 
 
 class TestCreateDataset:
@@ -655,7 +656,7 @@ class TestCreateDataset:
         mock_dataset_source_repo: DatasetSourceRepositoryInterface,
         mock_dataset_storage_repo: DatasetStorageRepositoryInterface,
         mock_dataset_deletion_repo: DatasetDeletionRepositoryInterface,
-        mock_broadcaster,
+        mock_broadcaster: MockBroadcaster,
         raw_dataset_factory: RawDatasetFactory,
     ):
         """

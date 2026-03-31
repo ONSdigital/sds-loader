@@ -1,8 +1,6 @@
 
 ## Now
 
-- write production firestore repo
-- write production broadcaster
 - Add better tx_id getter
 
 ## Future improvements
