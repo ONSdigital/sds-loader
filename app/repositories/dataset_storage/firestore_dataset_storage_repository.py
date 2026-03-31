@@ -5,7 +5,7 @@ from google.cloud import firestore
 
 from app import get_logger
 from app.interfaces.dataset_storage_repository_interface import DatasetStorageRepositoryInterface
-from app.models.dataset import DatasetMetadataWithoutId, UnitDataset
+from app.models.dataset import DatasetMetadataWithoutId, UnitDataset, DatasetMetadata
 from app.models.guid import Guid
 
 logger = get_logger()
@@ -64,6 +64,31 @@ class FirestoreDatasetStorageRepository(DatasetStorageRepositoryInterface):
 
         return DatasetMetadataWithoutId.model_validate(datasets[0])
 
+
+    def _get_dataset_metadata(
+        self,
+        survey_id: str,
+        period_id: str,
+        version: int
+    ) -> DatasetMetadata | None:
+
+        latest_dataset = (
+            self.dataset_collection
+            .where("survey_id", "==", survey_id)
+            .where("period_id", "==", period_id)
+            .where("version", "==", version)
+            .limit(1)
+            .stream()
+        )
+
+        datasets = list(latest_dataset)
+
+        # If no results then return None
+        if len(datasets) == 0:
+            return None
+
+        return DatasetMetadata.model_validate(datasets[0])
+
     def store_dataset(
         self,
         dataset_id: Guid,
@@ -79,7 +104,34 @@ class FirestoreDatasetStorageRepository(DatasetStorageRepositoryInterface):
         period_id: str,
         version: int
     ):
-        ...
+        logger.info("Deleting previous version of dataset...")
+        logger.debug(
+            f"Deleting previous version dataset. Survey_id: {survey_id}, Period_id: {period_id}, "
+            f"Version number: {version}..."
+        )
+
+        dataset_metadata = self._get_dataset_metadata(survey_id, period_id, version)
+
+        if not dataset_metadata:
+            logger.error("Previous version of dataset is not found. Cannot delete.")
+            raise RuntimeError(
+                "Previous version of dataset is not found. Cannot delete."
+            )
+
+        try:
+            dataset_id = dataset_metadata.dataset_id
+
+            self.delete_dataset_by_guid(dataset_id)
+
+            logger.info("Previous version of dataset deleted succesfully.")
+
+        except Exception as e:
+            logger.error(
+                f"Failed to delete previous version of dataset from firestore.: {e}"
+            )
+            raise RuntimeError(
+                "Failed to delete previous version of dataset from firestore."
+            ) from e
 
 
     def delete_dataset_by_guid(self, guid: Guid):
