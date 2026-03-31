@@ -49,7 +49,8 @@ class MockPublisher:
         if file_name in self.side_effects:
             try:
                 self.side_effects[file_name]()
-            except:
+            except Exception as e:
+                print(e)
                 return
 
         self.published_schemas.append(file_name)

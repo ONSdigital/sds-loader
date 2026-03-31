@@ -449,6 +449,23 @@ wheels = [
 ]
 
 [[package]]
+name = "google-cloud-iam"
+version = "2.22.0"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "google-api-core", extra = ["grpc"] },
+    { name = "google-auth" },
+    { name = "grpc-google-iam-v1" },
+    { name = "grpcio" },
+    { name = "proto-plus" },
+    { name = "protobuf" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/62/e5/07d4f1daf85a2a0bd9f78ad865ea678d7b4e1227ed76f671c7167aae147f/google_cloud_iam-2.22.0.tar.gz", hash = "sha256:203ddfece17e014ee4fbc5c3244daa14a88b7ee57c8e3a7622d0f2a1a3b8d7f3", size = 502498, upload-time = "2026-03-30T22:51:28.878Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/aa/a8/d721ea11d0eb93803d14cb2e90d0442bb3b269a82f7cb5faff2b98022039/google_cloud_iam-2.22.0-py3-none-any.whl", hash = "sha256:c443b34b5a6a9e51d32cee397879bb781b900af68937c67a275def23bbc025f3", size = 463425, upload-time = "2026-03-30T20:02:42.967Z" },
+]
+
+[[package]]
 name = "google-cloud-pubsub"
 version = "2.36.0"
 source = { registry = "https://pypi.org/simple" }
@@ -1285,7 +1302,7 @@ wheels = [
 
 [[package]]
 name = "sds-common"
-version = "1.0.16"
+version = "1.0.17"
 source = { registry = "https://europe-west2-python.pkg.dev/ons-sds-ci/sds-python-packages/simple/" }
 dependencies = [
     { name = "cloudevents" },
@@ -1293,6 +1310,7 @@ dependencies = [
     { name = "functions-framework" },
     { name = "google-auth" },
     { name = "google-cloud-firestore" },
+    { name = "google-cloud-iam" },
     { name = "google-cloud-pubsub" },
     { name = "google-cloud-secret-manager" },
     { name = "google-cloud-storage" },
@@ -1303,9 +1321,9 @@ dependencies = [
     { name = "requests" },
     { name = "setuptools" },
 ]
-sdist = { url = "https://europe-west2-python.pkg.dev/ons-sds-ci/sds-python-packages/sds-common/sds_common-1.0.16.tar.gz", hash = "sha256:36d92709a5e83ff42e7bf1d8e1394c0b84f6b5a7a91d4e9d5c46a07dc8842ad5" }
+sdist = { url = "https://europe-west2-python.pkg.dev/ons-sds-ci/sds-python-packages/sds-common/sds_common-1.0.17.tar.gz", hash = "sha256:7d667f714046d9667239f2120b5c15dbca394c9c5b7eda92cb27fee7f7b59d29" }
 wheels = [
-    { url = "https://europe-west2-python.pkg.dev/ons-sds-ci/sds-python-packages/sds-common/sds_common-1.0.16-py3-none-any.whl", hash = "sha256:bf86faccb388ff1e56611f5075f71e19da785c113443bdf88d528a7bb9a2c83d" },
+    { url = "https://europe-west2-python.pkg.dev/ons-sds-ci/sds-python-packages/sds-common/sds_common-1.0.17-py3-none-any.whl", hash = "sha256:650b0bc3893693fc772ff040e44868313b1d7d87bd9cc154f0f7d780414f37d2" },
 ]
 
 [[package]]
@@ -1358,7 +1376,7 @@ version-check = [
 requires-dist = [
     { name = "lagom", specifier = ">=2.7.7" },
     { name = "polyfactory", specifier = ">=3.3.0" },
-    { name = "sds-common", specifier = "==1.0.16" },
+    { name = "sds-common", specifier = "==1.0.17" },
     { name = "sdx-base", specifier = ">=0.2.9", index = "https://europe-west2-python.pkg.dev/ons-sdx-ci/sdx-python-packages/simple/" },
 ]
 
