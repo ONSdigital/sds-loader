@@ -67,7 +67,7 @@ class DatasetStorageRepositoryInterface(ABC):
         ...
 
     @abstractmethod
-    async def delete_dataset_by_guid(
+    def delete_dataset_by_guid(
         self,
         guid: Guid,
     ):

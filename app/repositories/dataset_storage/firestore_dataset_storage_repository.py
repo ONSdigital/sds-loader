@@ -30,17 +30,9 @@ class FirestoreDatasetStorageRepository(DatasetStorageRepositoryInterface):
             database=self.settings.firestore_database
         )
 
-        # Async client
-        self.async_client = firestore.AsyncClient(
-            project=self.settings.project_id,
-            database=self.settings.firestore_database
-        )
 
         # Initialize Firestore collections
         self.dataset_collection = self.client.collection("datasets")
-
-        # Async collection
-        self.async_dataset_collection = self.async_client.collection("datasets")
 
 
     def get_latest_dataset_metadata(
@@ -83,13 +75,6 @@ class FirestoreDatasetStorageRepository(DatasetStorageRepositoryInterface):
     ):
         pass
 
-    async def delete_dataset_by_guid(self, guid: Guid):
+    def delete_dataset_by_guid(self, guid: Guid):
 
-        collections = self.async_dataset_collection.document(guid).collections()
-
-        # Delete sub collections first
-        async for sub_collection in collections:
-            await sub_collection.recursive_delete()
-
-        # Delete the document itself
-        await self.async_dataset_collection.document(guid).delete()
+        ...
