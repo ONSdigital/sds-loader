@@ -4,17 +4,19 @@ from sds_common.publishers.gcs_schema_publisher import GcsSchemaPublisher
 from sds_common.publishers.github_schema_publisher import GithubSchemaPublisher
 from sdx_base.services.storage import StorageService
 
+from app.broadcasters.fake_broadcaster import FakeBroadcaster
+from app.broadcasters.pubsub_broadcaster import PubsubBroadcaster
+from app.interfaces.dataset_broadcast_interface import DatasetBroadcastInterface
 from app.interfaces.dataset_deletion_repository_interface import DatasetDeletionRepositoryInterface
 from app.interfaces.dataset_source_repository_interface import DatasetSourceRepositoryInterface
 from app.interfaces.dataset_storage_repository_interface import DatasetStorageRepositoryInterface
-from app.models.dataset import DatasetMetadata
 from app.repositories.dataset_deletion.fake_dataset_deletion_repository import FakeDatasetDeletionRepository
 from app.repositories.dataset_deletion.firestore_dataset_deletion_repository import FirestoreDatasetDeletionRepository
 from app.repositories.dataset_source.bucket_dataset_source_repository import BucketDatasetSourceRepository
 from app.repositories.dataset_source.fake_dataset_source_repository import FakeDatasetSourceRepository
 from app.repositories.dataset_storage.fake_dataset_storage_repository import FakeDatasetStorageRepository
 from app.repositories.dataset_storage.firestore_dataset_storage_repository import FirestoreDatasetStorageRepository
-from app.services.dataset_service import DatasetService, BroadcastProtocol, DatasetSettings
+from app.services.dataset_service import DatasetService, DatasetSettings
 from app.services.schema_service import SchemaService
 
 from app.settings import Settings, get_instance, QuickSettings
@@ -26,14 +28,6 @@ class FakePublisher:
 
     def publish_schema(self, file_name: str):
         print(f"Published: {file_name} to {self._name}")
-
-
-class FakeBroadcaster:
-    def __init__(self):
-        self.broadcasted = []
-
-    def broadcast(self, dataset_metadata: DatasetMetadata) -> None:
-        self.broadcasted.append(dataset_metadata)
 
 
 def build_container() -> Container:
@@ -106,14 +100,15 @@ def build_container() -> Container:
         container[DatasetDeletionRepositoryInterface] = FakeDatasetDeletionRepository
 
     # -----------------------------
-    # Protocols
+    # DatasetBroadcastInterface
     # -----------------------------
 
     if is_prod:
-        container[BroadcastProtocol] = FakeBroadcaster  # TODO
+        container[DatasetBroadcastInterface] = PubsubBroadcaster
     else:
-        container[BroadcastProtocol] = FakeBroadcaster
+        container[DatasetBroadcastInterface] = FakeBroadcaster
 
+    # Settings
     container[DatasetSettings] = lambda: get_instance()
 
     # -----------------------------

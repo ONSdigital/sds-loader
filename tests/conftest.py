@@ -11,6 +11,7 @@ from sdx_base.server.tx_id import txid_not_applicable
 from sdx_base.settings.app import AppSettings
 
 from app.factories.dataset_factories import RawDatasetFactory, DatasetMetadataWithoutIdFactory
+from app.interfaces.dataset_broadcast_interface import DatasetBroadcastInterface
 from app.interfaces.dataset_deletion_repository_interface import DatasetDeletionRepositoryInterface
 from app.interfaces.dataset_source_repository_interface import DatasetSourceRepositoryInterface
 from app.interfaces.dataset_storage_repository_interface import DatasetStorageRepositoryInterface
@@ -58,7 +59,7 @@ class MockPublisher:
 # ------------------------
 
 
-class MockBroadcaster:
+class MockBroadcaster(DatasetBroadcastInterface):
     """
     A mock broadcaster for testing the broadcasting of dataset metadata.
     """
@@ -109,7 +110,7 @@ def mock_dataset_storage_repo() -> DatasetStorageRepositoryInterface:
 
 
 @pytest.fixture
-def mock_broadcaster() -> MockBroadcaster:
+def mock_broadcaster() -> DatasetBroadcastInterface:
     return MockBroadcaster()
 
 

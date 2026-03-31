@@ -11,6 +11,7 @@ from app.exceptions.dataset_storing_exception import DatasetStoringException
 from app.exceptions.dataset_validation_exception import DatasetValidationException
 from app.exceptions.dataset_source_empty_exception import DatasetSourceEmptyException
 from app.exceptions.dataset_invalid_filename_exception import DatasetInvalidFilenameException
+from app.interfaces.dataset_broadcast_interface import DatasetBroadcastInterface
 from app.interfaces.dataset_deletion_repository_interface import DatasetDeletionRepositoryInterface
 from app.interfaces.dataset_source_repository_interface import DatasetSourceRepositoryInterface
 from app.interfaces.dataset_storage_repository_interface import DatasetStorageRepositoryInterface
@@ -29,16 +30,6 @@ class DatasetSettings(Protocol):
     retain_old_datasets: bool = True
 
 
-class BroadcastProtocol(Protocol):
-    """
-    Defines the protocol for broadcasting messages
-    for the dataset service
-    """
-
-    def broadcast(self, dataset_metadata: DatasetMetadata) -> None:
-        ...
-
-
 class DatasetService:
     """
     DatasetService provides a way to manage
@@ -50,7 +41,7 @@ class DatasetService:
         dataset_source_repo: DatasetSourceRepositoryInterface,
         dataset_storage_repo: DatasetStorageRepositoryInterface,
         dataset_deletion_repo: DatasetDeletionRepositoryInterface,
-        broadcaster: BroadcastProtocol,
+        broadcaster: DatasetBroadcastInterface,
         settings: DatasetSettings
     ):
         self.dataset_source_repo = dataset_source_repo

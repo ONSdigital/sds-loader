@@ -3,7 +3,6 @@ from typing import Protocol
 from google.cloud import firestore
 
 from app import get_logger
-from app.exceptions.dataset_deletion_exception import DatasetDeletionException
 from app.interfaces.dataset_storage_repository_interface import DatasetStorageRepositoryInterface
 from app.models.dataset import DatasetMetadataWithoutId, UnitDataset, DatasetMetadata
 from app.models.guid import Guid
