@@ -1,10 +1,14 @@
+import json
 from typing import Protocol
 
 from google.cloud import firestore
 
+from app import get_logger
 from app.interfaces.dataset_storage_repository_interface import DatasetStorageRepositoryInterface
 from app.models.dataset import DatasetMetadataWithoutId, UnitDataset
 from app.models.guid import Guid
+
+logger = get_logger()
 
 
 class FirestoreSettings(Protocol):
@@ -29,6 +33,8 @@ class FirestoreDatasetStorageRepository(DatasetStorageRepositoryInterface):
             project=self.settings.project_id,
             database=self.settings.firestore_database
         )
+
+        self.MAX_BATCH_SIZE_BYTES = 9 * 1024 * 1024
 
 
         # Initialize Firestore collections
@@ -73,8 +79,14 @@ class FirestoreDatasetStorageRepository(DatasetStorageRepositoryInterface):
         period_id: str,
         version: int
     ):
-        pass
+        ...
+
 
     def delete_dataset_by_guid(self, guid: Guid):
+        collections = self.dataset_collection.document(guid).collections()
 
-        ...
+        # Delete each collection
+        for collection in collections:
+            collection.recursive_delete()
+
+        self.dataset_collection.document(guid).delete()
