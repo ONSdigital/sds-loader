@@ -7,6 +7,7 @@ from app.enums.delete_status import DeleteStatus
 from app.exceptions.dataset_deletion_empty_exception import DatasetDeletionEmptyException
 from app.exceptions.dataset_deletion_exception import DatasetDeletionException
 from app.exceptions.dataset_not_found_exception import DatasetNotFoundException
+from app.exceptions.dataset_storing_exception import DatasetStoringException
 from app.exceptions.dataset_validation_exception import DatasetValidationException
 from app.exceptions.dataset_source_empty_exception import DatasetSourceEmptyException
 from app.exceptions.dataset_invalid_filename_exception import DatasetInvalidFilenameException
@@ -214,12 +215,22 @@ class DatasetService:
         # Write the new dataset to storage (firestore)
 
         logger.info(f"Saving new dataset to storage repository: {dataset_id}")
-        self.dataset_storage_repo.store_dataset(
-            dataset_id=dataset_id,
-            dataset_metadata=new_dataset_metadata,
-            unit_data_collection_with_metadata=unit_data_collection_with_metadata,
-            unit_data_identifiers=unit_data_identifiers,
-        )
+
+        try:
+            self.dataset_storage_repo.store_dataset(
+                dataset_id=dataset_id,
+                dataset_metadata=new_dataset_metadata,
+                unit_data_collection_with_metadata=unit_data_collection_with_metadata,
+                unit_data_identifiers=unit_data_identifiers,
+            )
+        except Exception as e:
+
+            logger.error(f"Failed to save new dataset to storage repository, cleaning up: {e}")
+            # If an error occurs, ensure this is fully deleted
+            self.dataset_storage_repo.delete_dataset_by_guid(dataset_id)
+
+            raise DatasetStoringException from e
+
         logger.info(f"Dataset saved to storage successfully: {dataset_id}")
 
         # Create a DatasetMetadata object
@@ -266,6 +277,8 @@ class DatasetService:
 
         # Delete the previous version if the retention flag is false and this is not v1
         if not self.settings.retain_old_datasets and new_version > 1:
+
+            logger.info("Deleting previous version of dataset...")
 
             # Delete the old version
             self.dataset_storage_repo.delete_dataset_version(

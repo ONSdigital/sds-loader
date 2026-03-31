@@ -7,6 +7,7 @@ from app.exceptions.dataset_deletion_exception import DatasetDeletionException
 from app.exceptions.dataset_invalid_filename_exception import DatasetInvalidFilenameException
 from app.exceptions.dataset_not_found_exception import DatasetNotFoundException
 from app.exceptions.dataset_source_empty_exception import DatasetSourceEmptyException
+from app.exceptions.dataset_storing_exception import DatasetStoringException
 from app.exceptions.dataset_validation_exception import DatasetValidationException
 from app.factories.dataset_factories import RawDatasetFactory, DatasetMetadataWithoutIdFactory
 from app.interfaces.dataset_deletion_repository_interface import DatasetDeletionRepositoryInterface
@@ -123,6 +124,61 @@ class TestCreateDataset:
 
         # Assert the mock_dataset_source_repo.delete_raw_data method was called with the invalid filename
         mock_dataset_source_repo.delete_raw_data.assert_called_once_with("invalid-filename")
+
+    def test_dataset_is_fully_deleted_if_exception_occurs_during_creation(
+        self,
+        mock_dataset_source_repo: DatasetSourceRepositoryInterface,
+        mock_dataset_storage_repo: DatasetStorageRepositoryInterface,
+        mock_dataset_deletion_repo: DatasetDeletionRepositoryInterface,
+        mock_broadcaster,
+        raw_dataset_factory: RawDatasetFactory,
+        dataset_metadata_without_id_factory: DatasetMetadataWithoutIdFactory
+    ):
+        """
+        Test that if an exception occurs when saving the dataset to the storage repository,
+        the dataset is fully deleted from the storage repository
+        """
+
+        # ------------------------
+        # Source repository mocks
+        # ------------------------
+
+        # Mock the source repo to return a valid JSON filename
+        mock_dataset_source_repo.get_oldest_filename.return_value = "valid-filename.json"
+
+        # Mock the source repo to return valid RawDataset
+        mock_dataset_source_repo.get_raw_data.return_value = raw_dataset_factory.build()
+
+        # ------------------------
+        # Storage repository mocks
+        # ------------------------
+
+        # Mock the storage repository (firestore)
+        # to return a valid dataset
+        mock_dataset_storage_repo.get_latest_dataset_metadata.return_value = dataset_metadata_without_id_factory.build()
+
+        # Mock the storage repo to throw an error for store_dataset
+        mock_dataset_storage_repo.store_dataset.side_effect = Exception("Error saving dataset to storage repository")
+
+        # Create mock settings
+        class MockSettings:
+            autodelete_dataset = False
+            retain_old_datasets = True
+
+        service = DatasetService(
+            dataset_source_repo=mock_dataset_source_repo,
+            dataset_storage_repo=mock_dataset_storage_repo,
+            dataset_deletion_repo=mock_dataset_deletion_repo,
+            broadcaster=mock_broadcaster,
+            settings=MockSettings(),
+        )
+
+        # Assert a DatasetStoringException is raised
+        with pytest.raises(DatasetStoringException):
+            service.create_dataset()
+
+        # Assert the delete_dataset_by_guid method was called to delete the dataset after the exception
+        mock_dataset_storage_repo.delete_dataset_by_guid.assert_called_once()
 
     def test_raises_exception_when_file_contents_are_invalid(
         self,
@@ -829,7 +885,6 @@ class TestDeleteDataset:
             broadcaster=mock_broadcaster,
             settings=MockSettings(),
         )
-
 
         # Assert the exception is raised
         with pytest.raises(DatasetDeletionEmptyException):

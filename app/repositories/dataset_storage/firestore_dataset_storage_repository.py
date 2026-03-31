@@ -36,7 +36,6 @@ class FirestoreDatasetStorageRepository(DatasetStorageRepositoryInterface):
 
         self.MAX_BATCH_SIZE_BYTES = 9 * 1024 * 1024
 
-
         # Initialize Firestore collections
         self.dataset_collection = self.client.collection("datasets")
 
@@ -94,7 +93,18 @@ class FirestoreDatasetStorageRepository(DatasetStorageRepositoryInterface):
         unit_data_collection_with_metadata: list[UnitDataset],
         unit_data_identifiers: list[str]
     ):
-        pass
+
+        # Create a new document for this dataset
+        new_dataset_document = self.dataset_collection.document(dataset_id)
+
+        # Create a new collection for the units
+        units_collection = new_dataset_document.collection("units")
+
+        # Go through unit data
+        for (unit_data, unit_identifier) in zip(unit_data_collection_with_metadata, unit_data_identifiers):
+
+            # Create and save the unit data as a new sub document
+            units_collection.document(unit_identifier).set(unit_data.model_dump())
 
     def delete_dataset_version(
         self,
@@ -102,11 +112,6 @@ class FirestoreDatasetStorageRepository(DatasetStorageRepositoryInterface):
         period_id: str,
         version: int
     ):
-        logger.info("Deleting previous version of dataset...")
-        logger.debug(
-            f"Deleting previous version dataset. Survey_id: {survey_id}, Period_id: {period_id}, "
-            f"Version number: {version}..."
-        )
 
         dataset_metadata = self._get_dataset_metadata(survey_id, period_id, version)
 
@@ -114,17 +119,8 @@ class FirestoreDatasetStorageRepository(DatasetStorageRepositoryInterface):
             logger.warning("Attempting delete dataset previous version, but it could not be found.")
             return
 
-        try:
-            self.delete_dataset_by_guid(dataset_metadata.dataset_id)
-            logger.info("Previous version of dataset deleted successfully.")
-
-        except Exception as e:
-            logger.error(
-                f"Failed to delete previous version of dataset from firestore.: {e}"
-            )
-            raise DatasetDeletionException(
-                "Failed to delete previous version of dataset from firestore."
-            ) from e
+        # Delete the dataset now we have a guid for it
+        self.delete_dataset_by_guid(dataset_metadata.dataset_id)
 
     def delete_dataset_by_guid(self, guid: Guid):
 
