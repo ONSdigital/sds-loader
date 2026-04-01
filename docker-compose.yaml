@@ -4,7 +4,7 @@ services:
     environment:
       - PORT=9023
     ports:
-      - 9023:9023
+      - "9023:9023"
     volumes:
       - ./devtools/gcp-storage-emulator/data:/storage
     container_name: storage-sds-loader
@@ -12,7 +12,7 @@ services:
     build:
       context: .
     ports:
-      - "5000:5000"
+      - "5006:5000"
     environment:
       - PORT=5000
       - STORAGE_EMULATOR_HOST=http://storage:9023
@@ -22,6 +22,12 @@ services:
       - PUBSUB_PROJECT_ID=mock-project-id
       - LOG_LEVEL=DEBUG
       - PROJECT_ID=mock-project-id
+      - ENV=production
+      - AUTODELETE_DATASET=true
+      - RETAIN_OLD_DATASETS=false
+      - DATASET_BUCKET_NAME=sds-loader-datasets
+      - FIRESTORE_DATABASE=test-database
+      - PUBLISH_DATASET_TOPIC_ID=publish-dataset
     restart: on-failure
     depends_on:
       - firestore
@@ -30,9 +36,9 @@ services:
   firestore:
     image: spine3/firebase-emulator
     ports:
-      - 8080:8080
-      - 4001:4001
-      - 8085:8085
+      - "8080:8080"
+      - "4001:4001"
+      - "8085:8085"
     environment:
       - GCP_PROJECT=mock-project-id
       - ENABLE_UI=true

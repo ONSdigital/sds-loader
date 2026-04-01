@@ -19,8 +19,17 @@ class QuickSettings(BaseSettings):
 
 
 class Settings(AppSettings):
+    """
+    project_id: The GCP project ID
+    autodelete_dataset: Whether to automatically delete datasets from the source repo (bucket) after publishing
+    retain_old_dataset: Whether to retain old versions of an updated dataset in the target repo (firestore)
+    dataset_bucket_name: The bucket name to pick up datasets from
+    firestore_database: The Firestore database to publish datasets to
+    publish_dataset_topic_id: The Pub/Sub topic ID to publish dataset updates to
+    """
     project_id: str
-    autodelete_dataset: bool
+    autodelete_dataset: bool = True
+    retain_old_dataset: bool = True
     dataset_bucket_name: str
     firestore_database: str
     publish_dataset_topic_id: str
