@@ -9,6 +9,8 @@ dependencies = [
     "lagom>=2.7.7",
     "polyfactory>=3.3.0",
     "pydantic-settings>=2.13.1",
+    "fastapi>=0.119.0",
+    "starlette>=0.48.0",
 ]
 
 [[tool.uv.index]]

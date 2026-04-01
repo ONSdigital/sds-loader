@@ -23,8 +23,6 @@ services:
       - LOG_LEVEL=DEBUG
       - PROJECT_ID=mock-project-id
       - ENV=production
-      - AUTODELETE_DATASET=true
-      - RETAIN_OLD_DATASETS=false
       - DATASET_BUCKET_NAME=sds-loader-datasets
       - FIRESTORE_DATABASE=test-database
       - PUBLISH_DATASET_TOPIC_ID=publish-dataset
@@ -37,7 +35,7 @@ services:
     image: spine3/firebase-emulator
     ports:
       - "8080:8080"
-      - "4001:4001"
+      - "4000:4000"
       - "8085:8085"
     environment:
       - GCP_PROJECT=mock-project-id

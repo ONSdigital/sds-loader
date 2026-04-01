@@ -41,7 +41,7 @@ class FakeDatasetStorageRepository(DatasetStorageRepositoryInterface):
             dataset_metadata,
             unit_data_collection_with_metadata,
             unit_data_identifiers,
-            False # marked for deletion?
+            False  # marked for deletion?
         ]
 
     def delete_dataset_version(
@@ -52,6 +52,9 @@ class FakeDatasetStorageRepository(DatasetStorageRepositoryInterface):
     ):
         dataset_key = (survey_id, period_id)
         datasets = self.datasets.get(dataset_key)
+
+        if not datasets:
+            return
 
         if len(datasets) == 0:
             return

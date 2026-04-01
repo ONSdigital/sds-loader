@@ -133,7 +133,7 @@ def test_app() -> FastAPI:
         project_id: str
 
     class MockSecretReader:
-        def get_secret(self, _project_id: str, secret_id: str) -> str:
+        def get_secret(self, project_id: str, secret_id: str) -> str:
             return "secret"
 
     return initialise(

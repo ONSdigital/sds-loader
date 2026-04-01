@@ -15,6 +15,7 @@ logger = get_logger()
 router = APIRouter()
 DEPS = FastApiIntegration(build_container())
 
+
 # ------------------------
 # core routes
 # ------------------------
@@ -35,6 +36,7 @@ async def health():
 async def version():
     return {"version": get_instance().app_version}
 
+
 # ------------------------
 # event driven endpoints
 # ------------------------
@@ -43,7 +45,7 @@ async def version():
 @router.post("/events/schema/publish")
 async def publish_schemas(
     request: Request,
-    source: str = Query(
+    source=Query(
         "github",
         description="The source of the files specified in this request, are they from github or bucket? ",
         min_length=3,
@@ -141,4 +143,3 @@ async def delete_dataset(
         status_code=200,
         content={"success": True, "message": "Dataset deleted successfully"},
     )
-
