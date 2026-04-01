@@ -124,7 +124,7 @@ class DatasetService:
 
         try:
             # Fetch the raw data for given filename from bucket
-            raw_dataset: RawDataset = self.dataset_source_repo.get_raw_data(dataset_filename)
+            raw_dataset: RawDataset | None = self.dataset_source_repo.get_raw_data(dataset_filename)
         except DatasetValidationException as e:
             logger.error(f"Dataset with filename: {dataset_filename} failed validation with error: {e}")
 
@@ -153,7 +153,7 @@ class DatasetService:
         now = datetime.datetime.now().strftime("%Y-%m-%dT%H:%M:%SZ")
 
         # Get the latest dataset based on survey_id and period_id
-        current_dataset: DatasetMetadataWithoutId = self.dataset_storage_repo.get_latest_dataset_metadata(
+        current_dataset: DatasetMetadataWithoutId | None = self.dataset_storage_repo.get_latest_dataset_metadata(
             raw_dataset.survey_id, raw_dataset.period_id
         )
 
