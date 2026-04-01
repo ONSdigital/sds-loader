@@ -300,7 +300,7 @@ class DatasetService:
         logger.info("Starting delete dataset process")
 
         # Fetch a single dataset guid "marked for deletion" from the dataset_deletion_repo (firestore)
-        dataset_guid_to_delete: Guid = self.dataset_deletion_repo.get_dataset_to_delete()
+        dataset_guid_to_delete: Guid | None = self.dataset_deletion_repo.get_dataset_to_delete()
 
         if not dataset_guid_to_delete:
             logger.info("No datasets marked for deletion (skipping process)")
