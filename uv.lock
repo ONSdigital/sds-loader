@@ -1327,28 +1327,7 @@ wheels = [
 ]
 
 [[package]]
-name = "sdx-base"
-version = "0.2.9"
-source = { registry = "https://europe-west2-python.pkg.dev/ons-sdx-ci/sdx-python-packages/simple/" }
-dependencies = [
-    { name = "fastapi" },
-    { name = "google-cloud-datastore" },
-    { name = "google-cloud-pubsub" },
-    { name = "google-cloud-run" },
-    { name = "google-cloud-secret-manager" },
-    { name = "google-cloud-storage" },
-    { name = "httpx" },
-    { name = "pydantic-settings" },
-    { name = "python-multipart" },
-    { name = "uvicorn" },
-]
-sdist = { url = "https://europe-west2-python.pkg.dev/ons-sdx-ci/sdx-python-packages/sdx-base/sdx_base-0.2.9.tar.gz", hash = "sha256:aa87699cfcf3eadbedb96adda5fa0b4994a969e965429b62e1dc290413c4803a" }
-wheels = [
-    { url = "https://europe-west2-python.pkg.dev/ons-sdx-ci/sdx-python-packages/sdx-base/sdx_base-0.2.9-py3-none-any.whl", hash = "sha256:572ecca44fdc3fe361655cde9e00eb4fdce65fcc9c8797ef7793b32cecea82f5" },
-]
-
-[[package]]
-name = "sdx-loader"
+name = "sds-loader"
 version = "0.0.1"
 source = { virtual = "." }
 dependencies = [
@@ -1396,6 +1375,27 @@ lint = [{ name = "ruff", specifier = ">=0.11.7" }]
 version-check = [
     { name = "toml", specifier = ">=0.10.2" },
     { name = "tomlkit", specifier = ">=0.13.3" },
+]
+
+[[package]]
+name = "sdx-base"
+version = "0.2.9"
+source = { registry = "https://europe-west2-python.pkg.dev/ons-sdx-ci/sdx-python-packages/simple/" }
+dependencies = [
+    { name = "fastapi" },
+    { name = "google-cloud-datastore" },
+    { name = "google-cloud-pubsub" },
+    { name = "google-cloud-run" },
+    { name = "google-cloud-secret-manager" },
+    { name = "google-cloud-storage" },
+    { name = "httpx" },
+    { name = "pydantic-settings" },
+    { name = "python-multipart" },
+    { name = "uvicorn" },
+]
+sdist = { url = "https://europe-west2-python.pkg.dev/ons-sdx-ci/sdx-python-packages/sdx-base/sdx_base-0.2.9.tar.gz", hash = "sha256:aa87699cfcf3eadbedb96adda5fa0b4994a969e965429b62e1dc290413c4803a" }
+wheels = [
+    { url = "https://europe-west2-python.pkg.dev/ons-sdx-ci/sdx-python-packages/sdx-base/sdx_base-0.2.9-py3-none-any.whl", hash = "sha256:572ecca44fdc3fe361655cde9e00eb4fdce65fcc9c8797ef7793b32cecea82f5" },
 ]
 
 [[package]]

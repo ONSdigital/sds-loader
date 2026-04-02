@@ -1,5 +1,5 @@
 [project]
-name = "sdx-loader"
+name = "sds-loader"
 version = "0.0.1"
 description = "A service for loading new sds schemas and datasets"
 requires-python = "==3.13.*"
