@@ -1,3 +1,5 @@
+from typing import Literal, Annotated
+
 from fastapi import APIRouter, Request
 from fastapi.params import Query
 from lagom.integrations.fast_api import FastApiIntegration
@@ -45,12 +47,12 @@ async def version():
 @router.post("/events/schema/publish")
 async def publish_schemas(
     request: Request,
-    source=Query(
-        "github",
-        description="The source of the files specified in this request, are they from github or bucket? ",
-        min_length=3,
-        max_length=10,
-    ),
+    source: Annotated[
+        Literal["github", "bucket"],
+        Query(
+            description="The source of the files specified in this request."
+        )
+    ] = "github",
     schema_service: SchemaService = DEPS.depends(SchemaService)
 ):
     """
@@ -89,7 +91,7 @@ async def create_dataset(
         dataset_service.create_dataset()
     except NonCriticalException as e:
 
-        # Return a status 200 (non critical exception)
+        # Return a status 200 (non-critical exception)
         return JSONResponse(
             status_code=200,
             content={"success": True, "message": str(e)},

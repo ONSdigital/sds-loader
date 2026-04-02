@@ -6,6 +6,7 @@ from sdx_base.server.server import RouterConfig
 from sdx_base.server.servers import default_server
 from sdx_base.server.tx_id import txid_not_applicable, txid_from_request
 
+from app.middleware.timing import TimingMiddleware
 from app.routes import router
 from app.settings import Settings, ROOT, get_instance
 
@@ -41,6 +42,7 @@ router_1 = RouterConfig(
 app: FastAPI = initialise(
     settings=Settings,
     routers=[router_1],
+    middleware=[TimingMiddleware],
     proj_root=ROOT
 )
 
