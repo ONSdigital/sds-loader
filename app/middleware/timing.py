@@ -12,7 +12,8 @@ TIMED_PREFIXES = ("/events/",)
 
 class TimingMiddleware(BaseHTTPMiddleware):
     """
-    Middleware for timing requests
+    Middleware for timing endpoint requests. The time
+    taken will be logged out
     """
 
     async def dispatch(self, request: Request, call_next):

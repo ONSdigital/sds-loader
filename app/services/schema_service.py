@@ -62,6 +62,8 @@ class SchemaService:
         :param file_list: List of file names to publish
         """
 
+        print(id(self))
+
         source = source.lower()
 
         if source == "github":

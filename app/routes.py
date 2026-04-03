@@ -25,7 +25,6 @@ DEPS = FastApiIntegration(build_container())
 
 @router.get("/")
 async def root():
-    logger.info("Example Log", {"extra": "values"})
     return {"message": "Welcome to sds-loader!"}
 
 
