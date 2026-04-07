@@ -52,7 +52,7 @@ make test
 ## Dockerize
 
 ```
-docker build -t myapp .
+docker build -t sds-loader .
 ```
 
 
