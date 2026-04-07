@@ -101,14 +101,14 @@ class DatasetService:
         :raises DatasetDeletionException: if there is an issue deleting the dataset from either the source or storage repository
         """
 
-        logger.info(f"Starting create dataset process...")
+        logger.info("Starting create dataset process...")
 
         # Get the filename of the oldest dataset in the bucket
         dataset_filename: str | None = self.dataset_source_repo.get_oldest_filename()
 
         # If the source repository is empty, there are no datasets to create
         if not dataset_filename:
-            logger.warning(f"No dataset found to create, skipping process")
+            logger.warning("No dataset found to create, skipping process")
             raise DatasetSourceEmptyException("No datasets found in the dataset source repository")
 
         # Validate the filename

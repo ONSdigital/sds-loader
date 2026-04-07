@@ -76,4 +76,3 @@ class SchemaService:
                 self._publish_single_file(file_name, publisher=self.bucket_publisher)
         else:
             raise SchemaSourceInvalidException(f"Invalid source: {source}")
-

@@ -170,4 +170,3 @@ class TestPublishSchemasEndpoint:
 
             # Assert nothing made it to the mock_bucket_publisher
             assert len(mock_bucket_publisher.published_schemas) == 0
-

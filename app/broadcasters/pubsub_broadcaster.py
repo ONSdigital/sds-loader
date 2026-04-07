@@ -30,4 +30,3 @@ class PubsubBroadcaster(DatasetBroadcastInterface):
             json.dumps(dataset_metadata),
             {}
         )
-

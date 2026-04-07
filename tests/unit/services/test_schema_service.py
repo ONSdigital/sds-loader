@@ -142,5 +142,3 @@ class TestPublishNewSchemas:
         assert len(mock_repo_publisher.published_schemas) == 2
         assert "schemas/a/b.json" in mock_repo_publisher.published_schemas
         assert "schemas/abc/def.json" in mock_repo_publisher.published_schemas
-
-
