@@ -12,8 +12,7 @@ class FakeDatasetSourceRepository(DatasetSourceRepositoryInterface):
 
     def __init__(self):
 
-        # Store fake datasets along with a timestamp of when they were added to the repository
-        # so that we can return the oldest one
+        # Store fake datasets
         self.datasets = {
             f"dataset_{x}.json": RawDatasetFactory.build()
             for x in range(3)

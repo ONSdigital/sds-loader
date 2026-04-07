@@ -1,4 +1,5 @@
 from fastapi import FastAPI
+from pathlib import Path
 from requests import Request
 from sdx_base.models.pubsub import Envelope
 from sdx_base.run import initialise
@@ -6,6 +7,7 @@ from sdx_base.server.server import RouterConfig
 from sdx_base.server.servers import default_server
 from sdx_base.server.tx_id import txid_not_applicable, txid_from_request
 
+from app.middleware.timing import TimingMiddleware
 from app.routes import router
 from app.settings import Settings, ROOT, get_instance
 
@@ -19,9 +21,20 @@ description = """
 """
 
 
+def load_startup_banner() -> str:
+    """
+    Load the ascii banner
+    """
+    banner_path = Path(ROOT) / "banner.txt"
+    try:
+        return banner_path.read_text()
+    except (OSError, UnicodeDecodeError):
+        return "sds-loader"
+
+
 async def smart_txid(request: Request) -> str:
     """
-    Refactor me
+    Extract the tx_id from the request
     """
     if request.method == "GET":
         return await txid_not_applicable(request)
@@ -41,6 +54,7 @@ router_1 = RouterConfig(
 app: FastAPI = initialise(
     settings=Settings,
     routers=[router_1],
+    middleware=[TimingMiddleware],
     proj_root=ROOT
 )
 
@@ -52,6 +66,7 @@ settings = get_instance()
 app.description = description
 
 if __name__ == "__main__":
+    print(load_startup_banner())
 
     default_server(
         app,

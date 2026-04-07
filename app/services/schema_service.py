@@ -2,6 +2,7 @@ import re
 from typing import Protocol
 
 from app import get_logger
+from app.exceptions.schema_source_invalid_exception import SchemaSourceInvalidException
 
 logger = get_logger()
 
@@ -64,6 +65,8 @@ class SchemaService:
 
         source = source.lower()
 
+        logger.info(f"Starting publishing new schemas, source: {source}")
+
         if source == "github":
             file_list = self._filter_github_files(file_list)
             for file_name in file_list:
@@ -72,5 +75,5 @@ class SchemaService:
             for file_name in file_list:
                 self._publish_single_file(file_name, publisher=self.bucket_publisher)
         else:
-            raise Exception(f"Invalid source: {source}")
+            raise SchemaSourceInvalidException(f"Invalid source: {source}")
 

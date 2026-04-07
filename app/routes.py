@@ -1,3 +1,5 @@
+from typing import Literal, Annotated
+
 from fastapi import APIRouter, Request
 from fastapi.params import Query
 from lagom.integrations.fast_api import FastApiIntegration
@@ -6,7 +8,7 @@ from starlette.responses import JSONResponse
 
 from app import get_logger
 from app.dependencies import build_container
-from app.exceptions import NonCriticalException, DatasetException
+from app.exceptions import NonCriticalException, DatasetException, SchemaException
 from app.services.dataset_service import DatasetService
 from app.services.schema_service import SchemaService
 from app.settings import get_instance
@@ -23,7 +25,6 @@ DEPS = FastApiIntegration(build_container())
 
 @router.get("/")
 async def root():
-    logger.info("Example Log", {"extra": "values"})
     return {"message": "Welcome to sds-loader!"}
 
 
@@ -45,12 +46,12 @@ async def version():
 @router.post("/events/schema/publish")
 async def publish_schemas(
     request: Request,
-    source=Query(
-        "github",
-        description="The source of the files specified in this request, are they from github or bucket? ",
-        min_length=3,
-        max_length=10,
-    ),
+    source: Annotated[
+        Literal["github", "bucket"],
+        Query(
+            description="The source of the files specified in this request."
+        )
+    ] = "github",
     schema_service: SchemaService = DEPS.depends(SchemaService)
 ):
     """
@@ -58,17 +59,40 @@ async def publish_schemas(
     location.
     """
 
-    # Fetch the message from pubsub
-    message: Message = await get_message(request)
+    try:
+        # Fetch the message from pubsub
+        message: Message = await get_message(request)
+    except Exception as e:
+        return JSONResponse(
+            status_code=500,
+            content={"success": False, "message": "Invalid message body received: " + str(e)},
+        )
 
-    # Publish the new schemas
-    schema_service.publish_new_schemas(
-        source=source,
-        file_list=get_data(message).split("\n")
+    try:
+        # Publish the new schemas
+        schema_service.publish_new_schemas(
+            source=source,
+            file_list=get_data(message).split("\n")
+        )
+    except NonCriticalException as e:
+
+        # Return a status 200 (non-critical exception)
+        return JSONResponse(
+            status_code=200,
+            content={"success": True, "message": str(e)},
+        )
+
+    except (SchemaException, Exception) as e:
+
+        return JSONResponse(
+            status_code=500,
+            content={"success": False, "message": "Exception publishing schema: " + str(e)},
+        )
+
+    return JSONResponse(
+        status_code=200,
+        content={"success": True, "message": "Schemas published successfully"},
     )
-
-    # Return a status
-    return 200
 
 
 @router.get("/events/dataset/create")
@@ -89,7 +113,7 @@ async def create_dataset(
         dataset_service.create_dataset()
     except NonCriticalException as e:
 
-        # Return a status 200 (non critical exception)
+        # Return a status 200 (non-critical exception)
         return JSONResponse(
             status_code=200,
             content={"success": True, "message": str(e)},
