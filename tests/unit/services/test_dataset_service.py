@@ -1,0 +1,1000 @@
+
+import pytest
+
+from app.enums.delete_status import DeleteStatus
+from app.exceptions.dataset_deletion_empty_exception import DatasetDeletionEmptyException
+from app.exceptions.dataset_deletion_exception import DatasetDeletionException
+from app.exceptions.dataset_invalid_filename_exception import DatasetInvalidFilenameException
+from app.exceptions.dataset_not_found_exception import DatasetNotFoundException
+from app.exceptions.dataset_source_empty_exception import DatasetSourceEmptyException
+from app.exceptions.dataset_storing_exception import DatasetStoringException
+from app.exceptions.dataset_validation_exception import DatasetValidationException
+from app.factories.dataset_factories import RawDatasetFactory, DatasetMetadataWithoutIdFactory
+from app.interfaces.dataset_deletion_repository_interface import DatasetDeletionRepositoryInterface
+from app.interfaces.dataset_source_repository_interface import DatasetSourceRepositoryInterface
+from app.interfaces.dataset_storage_repository_interface import DatasetStorageRepositoryInterface
+from app.models.dataset import DatasetMetadataWithoutId, DatasetMetadata
+from app.services.dataset_service import DatasetService
+from tests.conftest import MockBroadcaster
+
+
+class TestCreateDataset:
+
+    def test_raises_exception_if_source_is_empty(
+        self,
+        mock_dataset_source_repo: DatasetSourceRepositoryInterface,
+        mock_dataset_storage_repo: DatasetStorageRepositoryInterface,
+        mock_dataset_deletion_repo: DatasetDeletionRepositoryInterface,
+        mock_broadcaster
+    ):
+        """
+        Test that when the dataset source repository where datasets are picked up from is empty
+        an exception is raised
+        """
+
+        # Mock the source repo to always return None (no files)
+        mock_dataset_source_repo.get_oldest_filename.return_value = None
+
+        # Create mock settings
+        class MockSettings:
+            autodelete_dataset = False
+            retain_old_datasets = False
+
+        # Create a DatasetService
+        service = DatasetService(
+            dataset_source_repo=mock_dataset_source_repo,
+            dataset_storage_repo=mock_dataset_storage_repo,
+            dataset_deletion_repo=mock_dataset_deletion_repo,
+            broadcaster=mock_broadcaster,
+            settings=MockSettings(),
+        )
+
+        # Call create_dataset and assert that it raises the expected exception
+        with pytest.raises(DatasetSourceEmptyException):
+
+            service.create_dataset()
+
+    def test_raises_exception_if_filename_invalid(
+        self,
+        mock_dataset_source_repo: DatasetSourceRepositoryInterface,
+        mock_dataset_storage_repo: DatasetStorageRepositoryInterface,
+        mock_dataset_deletion_repo: DatasetDeletionRepositoryInterface,
+        mock_broadcaster
+    ):
+        """
+        Test that the filename in the dataset source repository is invalid
+        and an exception is raised
+        """
+
+        # Mock the source repo to return a filename that is invalid
+        mock_dataset_source_repo.get_oldest_filename.return_value = "invalid-filename"
+
+        # Create mock settings
+        class MockSettings:
+            autodelete_dataset = False
+            retain_old_datasets = False
+
+        # Create a DatasetService
+        service = DatasetService(
+            dataset_source_repo=mock_dataset_source_repo,
+            dataset_storage_repo=mock_dataset_storage_repo,
+            dataset_deletion_repo=mock_dataset_deletion_repo,
+            broadcaster=mock_broadcaster,
+            settings=MockSettings(),
+        )
+
+        # Call create_dataset and assert that it raises the expected exception
+        with pytest.raises(DatasetInvalidFilenameException):
+            service.create_dataset()
+
+        # Assert that because autodelete_dataset is False, the delete method is not called on the repo
+        mock_dataset_source_repo.delete_raw_data.assert_not_called()
+
+    def test_raises_exception_and_autodeletes_dataset_if_filename_invalid(
+        self,
+        mock_dataset_source_repo: DatasetSourceRepositoryInterface,
+        mock_dataset_storage_repo: DatasetStorageRepositoryInterface,
+        mock_dataset_deletion_repo: DatasetDeletionRepositoryInterface,
+        mock_broadcaster
+    ):
+        """
+        Test that the filename in the dataset source repository is invalid
+        and an exception is raised
+        """
+
+        # Mock the source repo to return a filename that is invalid
+        mock_dataset_source_repo.get_oldest_filename.return_value = "invalid-filename"
+
+        # Create mock settings
+        class MockSettings:
+            autodelete_dataset = True  # Set autodelete to True
+            retain_old_datasets = False
+
+        # Create a DatasetService
+        service = DatasetService(
+            dataset_source_repo=mock_dataset_source_repo,
+            dataset_storage_repo=mock_dataset_storage_repo,
+            dataset_deletion_repo=mock_dataset_deletion_repo,
+            broadcaster=mock_broadcaster,
+            settings=MockSettings(),
+        )
+
+        # Call create_dataset and assert that it raises the expected exception
+        with pytest.raises(DatasetInvalidFilenameException):
+            service.create_dataset()
+
+        # Assert the mock_dataset_source_repo.delete_raw_data method was called with the invalid filename
+        mock_dataset_source_repo.delete_raw_data.assert_called_once_with("invalid-filename")
+
+    def test_dataset_is_fully_deleted_if_exception_occurs_during_creation(
+        self,
+        mock_dataset_source_repo: DatasetSourceRepositoryInterface,
+        mock_dataset_storage_repo: DatasetStorageRepositoryInterface,
+        mock_dataset_deletion_repo: DatasetDeletionRepositoryInterface,
+        mock_broadcaster,
+        raw_dataset_factory: RawDatasetFactory,
+        dataset_metadata_without_id_factory: DatasetMetadataWithoutIdFactory
+    ):
+        """
+        Test that if an exception occurs when saving the dataset to the storage repository,
+        the dataset is fully deleted from the storage repository
+        """
+
+        # ------------------------
+        # Source repository mocks
+        # ------------------------
+
+        # Mock the source repo to return a valid JSON filename
+        mock_dataset_source_repo.get_oldest_filename.return_value = "valid-filename.json"
+
+        # Mock the source repo to return valid RawDataset
+        mock_dataset_source_repo.get_raw_data.return_value = raw_dataset_factory.build()
+
+        # ------------------------
+        # Storage repository mocks
+        # ------------------------
+
+        # Mock the storage repository (firestore)
+        # to return a valid dataset
+        mock_dataset_storage_repo.get_latest_dataset_metadata.return_value = dataset_metadata_without_id_factory.build()
+
+        # Mock the storage repo to throw an error for store_dataset
+        mock_dataset_storage_repo.store_dataset.side_effect = Exception("Error saving dataset to storage repository")
+
+        # Create mock settings
+        class MockSettings:
+            autodelete_dataset = False
+            retain_old_datasets = True
+
+        service = DatasetService(
+            dataset_source_repo=mock_dataset_source_repo,
+            dataset_storage_repo=mock_dataset_storage_repo,
+            dataset_deletion_repo=mock_dataset_deletion_repo,
+            broadcaster=mock_broadcaster,
+            settings=MockSettings(),
+        )
+
+        # Assert a DatasetStoringException is raised
+        with pytest.raises(DatasetStoringException):
+            service.create_dataset()
+
+        # Assert the delete_dataset_by_guid method was called to delete the dataset after the exception
+        mock_dataset_storage_repo.delete_dataset_by_guid.assert_called_once()
+
+    def test_raises_exception_when_file_contents_are_invalid(
+        self,
+        mock_dataset_source_repo: DatasetSourceRepositoryInterface,
+        mock_dataset_storage_repo: DatasetStorageRepositoryInterface,
+        mock_dataset_deletion_repo: DatasetDeletionRepositoryInterface,
+        mock_broadcaster
+    ):
+        """
+        Test that when the dataset is read in from the source repository
+        and its content does not conform to the expected format an exception is raised
+        """
+
+        # Mock the source repo to return a valid filename
+        mock_dataset_source_repo.get_oldest_filename.return_value = "valid-filename.json"
+
+        # Mock the get_raw_data method to raise DatasetValidationException
+        mock_dataset_source_repo.get_raw_data.side_effect = DatasetValidationException("Invalid dataset content")
+
+        # Create mock settings
+        class MockSettings:
+            autodelete_dataset = False
+            retain_old_datasets = False
+
+        # Create a DatasetService
+        service = DatasetService(
+            dataset_source_repo=mock_dataset_source_repo,
+            dataset_storage_repo=mock_dataset_storage_repo,
+            dataset_deletion_repo=mock_dataset_deletion_repo,
+            broadcaster=mock_broadcaster,
+            settings=MockSettings(),
+        )
+
+        # Call create_dataset and assert that it raises the expected exception
+        with pytest.raises(DatasetValidationException):
+            service.create_dataset()
+
+        # Assert that because autodelete_dataset is False, the delete method is not called on the repo
+        mock_dataset_source_repo.delete_raw_data.assert_not_called()
+
+    def test_raises_exception_and_autodeletes_when_file_contents_are_invalid(
+        self,
+        mock_dataset_source_repo: DatasetSourceRepositoryInterface,
+        mock_dataset_storage_repo: DatasetStorageRepositoryInterface,
+        mock_dataset_deletion_repo: DatasetDeletionRepositoryInterface,
+        mock_broadcaster
+    ):
+        """
+        Test that when the dataset is read in from the source repository
+        and its content does not conform to the expected format an exception is raised
+        """
+
+        # Mock the source repo to return a valid filename
+        mock_dataset_source_repo.get_oldest_filename.return_value = "valid-filename.json"
+
+        # Mock the get_raw_data method to raise DatasetValidationException
+        mock_dataset_source_repo.get_raw_data.side_effect = DatasetValidationException("Invalid dataset content")
+
+        # Create mock settings
+        class MockSettings:
+            autodelete_dataset = True
+            retain_old_datasets = False
+
+        # Create a DatasetService
+        service = DatasetService(
+            dataset_source_repo=mock_dataset_source_repo,
+            dataset_storage_repo=mock_dataset_storage_repo,
+            dataset_deletion_repo=mock_dataset_deletion_repo,
+            broadcaster=mock_broadcaster,
+            settings=MockSettings(),
+        )
+
+        # Call create_dataset and assert that it raises the expected exception
+        with pytest.raises(DatasetValidationException):
+            service.create_dataset()
+
+        # Assert the mock_dataset_source_repo.delete_raw_data method was called
+        mock_dataset_source_repo.delete_raw_data.assert_called_once_with("valid-filename.json")
+
+    def test_raises_exception_if_cannot_find_dataset_in_source_repo(
+        self,
+        mock_dataset_source_repo: DatasetSourceRepositoryInterface,
+        mock_dataset_storage_repo: DatasetStorageRepositoryInterface,
+        mock_dataset_deletion_repo: DatasetDeletionRepositoryInterface,
+        mock_broadcaster
+    ):
+        """
+        Test that if the specified filename for a dataset cannot be found in the source repository
+        an exception is raised
+        """
+
+        # Mock the source repo to return a valid filename
+        mock_dataset_source_repo.get_oldest_filename.return_value = "valid-filename.json"
+
+        # Mock the get_raw_data to return None, to simulate not found
+        mock_dataset_source_repo.get_raw_data.return_value = None
+
+        # Create mock settings
+        class MockSettings:
+            autodelete_dataset = False
+            retain_old_datasets = False
+
+        # Create a DatasetService
+        service = DatasetService(
+            dataset_source_repo=mock_dataset_source_repo,
+            dataset_storage_repo=mock_dataset_storage_repo,
+            dataset_deletion_repo=mock_dataset_deletion_repo,
+            broadcaster=mock_broadcaster,
+            settings=MockSettings(),
+        )
+
+        # Call create_dataset and assert that it raises the expected exception
+        with pytest.raises(DatasetNotFoundException):
+            service.create_dataset()
+
+    def test_autodelete_after_successfully_reading_dataset(
+        self,
+        mock_dataset_source_repo: DatasetSourceRepositoryInterface,
+        mock_dataset_storage_repo: DatasetStorageRepositoryInterface,
+        mock_dataset_deletion_repo: DatasetDeletionRepositoryInterface,
+        mock_broadcaster,
+        raw_dataset_factory: RawDatasetFactory,
+        dataset_metadata_without_id_factory: DatasetMetadataWithoutIdFactory
+    ):
+        """
+        Test that when autodelete is set to True the dataset is automatically deleted
+        after reading from the source repository
+        """
+
+        # ------------------------
+        # Source repository mocks
+        # ------------------------
+
+        # Mock the source repo to return a valid JSON filename
+        mock_dataset_source_repo.get_oldest_filename.return_value = "valid-filename.json"
+
+        # Mock the source repo to return valid RawDataset
+        mock_dataset_source_repo.get_raw_data.return_value = raw_dataset_factory.build()
+
+        # ------------------------
+        # Storage repository mocks
+        # ------------------------
+
+        # Mock the storage repository (firestore)
+        # to return a valid dataset
+        mock_dataset_storage_repo.get_latest_dataset_metadata.return_value = dataset_metadata_without_id_factory.build()
+
+        # Create mock settings
+        class MockSettings:
+            autodelete_dataset = True
+            retain_old_datasets = False
+
+        # Create a DatasetService
+        service = DatasetService(
+            dataset_source_repo=mock_dataset_source_repo,
+            dataset_storage_repo=mock_dataset_storage_repo,
+            dataset_deletion_repo=mock_dataset_deletion_repo,
+            broadcaster=mock_broadcaster,
+            settings=MockSettings(),
+        )
+
+        # Call create_dataset method
+        service.create_dataset()
+
+        # Assert the mock_dataset_source_repo.delete_raw_data method was called
+        mock_dataset_source_repo.delete_raw_data.assert_called_once_with("valid-filename.json")
+
+    def test_does_not_autodelete_after_successfully_reading_dataset_if_autodelete_false(
+        self,
+        mock_dataset_source_repo: DatasetSourceRepositoryInterface,
+        mock_dataset_storage_repo: DatasetStorageRepositoryInterface,
+        mock_dataset_deletion_repo: DatasetDeletionRepositoryInterface,
+        mock_broadcaster,
+        raw_dataset_factory: RawDatasetFactory,
+        dataset_metadata_without_id_factory: DatasetMetadataWithoutIdFactory
+    ):
+        """
+        Test that when autodelete is set to False the dataset should not be autodeleted
+        """
+
+        # ------------------------
+        # Source repository mocks
+        # ------------------------
+
+        # Mock the source repo to return a valid JSON filename
+        mock_dataset_source_repo.get_oldest_filename.return_value = "valid-filename.json"
+
+        # Mock the source repo to return valid RawDataset
+        mock_dataset_source_repo.get_raw_data.return_value = raw_dataset_factory.build()
+
+        # ------------------------
+        # Storage repository mocks
+        # ------------------------
+
+        # Mock the storage repository (firestore)
+        # to return a valid dataset
+        mock_dataset_storage_repo.get_latest_dataset_metadata.return_value = dataset_metadata_without_id_factory.build()
+
+        # Create mock settings
+        class MockSettings:
+            autodelete_dataset = False
+            retain_old_datasets = False
+
+        # Create a DatasetService
+        service = DatasetService(
+            dataset_source_repo=mock_dataset_source_repo,
+            dataset_storage_repo=mock_dataset_storage_repo,
+            dataset_deletion_repo=mock_dataset_deletion_repo,
+            broadcaster=mock_broadcaster,
+            settings=MockSettings(),
+        )
+
+        # Call create_dataset method
+        service.create_dataset()
+
+        # Assert the mock_dataset_source_repo.delete_raw_data method was not called
+        mock_dataset_source_repo.delete_raw_data.assert_not_called()
+
+    def test_increments_dataset_version(
+        self,
+        mock_dataset_source_repo: DatasetSourceRepositoryInterface,
+        mock_dataset_storage_repo: DatasetStorageRepositoryInterface,
+        mock_dataset_deletion_repo: DatasetDeletionRepositoryInterface,
+        mock_broadcaster,
+        raw_dataset_factory: RawDatasetFactory,
+        dataset_metadata_without_id_factory: DatasetMetadataWithoutIdFactory
+    ):
+        """
+        Test that if a dataset exists for the current survey_id and period
+        that the service correctly increments the dataset version
+        """
+
+        # Use predictable survey_id and period
+        survey_id = "123"
+        period_id = "456"
+
+        # ------------------------
+        # Source repository mocks
+        # ------------------------
+
+        # Mock the source repo to return a valid JSON filename
+        mock_dataset_source_repo.get_oldest_filename.return_value = "valid-filename.json"
+
+        # Mock the source repo to return valid RawDataset
+        mock_dataset_source_repo.get_raw_data.return_value = raw_dataset_factory.build(
+            survey_id=survey_id,
+            period_id=period_id,
+        )
+
+        # ------------------------
+        # Storage repository mocks
+        # ------------------------
+
+        # Mock the current storage repository (firestore)
+        # Having a sds_dataset_version of 3
+        mock_dataset_storage_repo.get_latest_dataset_metadata.return_value = dataset_metadata_without_id_factory.build(
+            survey_id=survey_id,
+            period_id=period_id,
+            sds_dataset_version=3,
+        )
+
+        # Create mock settings
+        class MockSettings:
+            autodelete_dataset = False
+            retain_old_datasets = False
+
+        # Create a DatasetService
+        service = DatasetService(
+            dataset_source_repo=mock_dataset_source_repo,
+            dataset_storage_repo=mock_dataset_storage_repo,
+            dataset_deletion_repo=mock_dataset_deletion_repo,
+            broadcaster=mock_broadcaster,
+            settings=MockSettings(),
+        )
+
+        # Call create_dataset method
+        service.create_dataset()
+
+        # Assert we only called store_dataset once
+        mock_dataset_storage_repo.store_dataset.assert_called_once()
+
+        # Get the arguments the repository was called with
+        args, kwargs = mock_dataset_storage_repo.store_dataset.call_args
+
+        # Extract just the dataset_metadata argument
+        dataset_metadata: DatasetMetadataWithoutId = kwargs['dataset_metadata']
+
+        # Assert the metadata contains correct data
+        assert dataset_metadata.survey_id == survey_id
+        assert dataset_metadata.period_id == period_id
+        assert dataset_metadata.sds_dataset_version == 4
+
+    def test_increments_dataset_version_with_no_older_versions(
+        self,
+        mock_dataset_source_repo: DatasetSourceRepositoryInterface,
+        mock_dataset_storage_repo: DatasetStorageRepositoryInterface,
+        mock_dataset_deletion_repo: DatasetDeletionRepositoryInterface,
+        mock_broadcaster,
+        raw_dataset_factory: RawDatasetFactory,
+    ):
+        """
+        Test that if a dataset does NOT exist for the current survey_id and period
+        that the service correctly sets the version to 1 (since there are no older versions)
+        """
+
+        # Use predictable survey_id and period
+        survey_id = "123"
+        period_id = "456"
+
+        # ------------------------
+        # Source repository mocks
+        # ------------------------
+
+        # Mock the source repo to return a valid JSON filename
+        mock_dataset_source_repo.get_oldest_filename.return_value = "valid-filename.json"
+
+        # Mock the source repo to return valid RawDataset
+        mock_dataset_source_repo.get_raw_data.return_value = raw_dataset_factory.build(
+            survey_id=survey_id,
+            period_id=period_id,
+        )
+
+        # ------------------------
+        # Storage repository mocks
+        # ------------------------
+
+        # Mock the current storage repository (firestore)
+        # to have no previous versions (return None)
+        mock_dataset_storage_repo.get_latest_dataset_metadata.return_value = None
+
+        # Create mock settings
+        class MockSettings:
+            autodelete_dataset = False
+            retain_old_datasets = False
+
+        # Create a DatasetService
+        service = DatasetService(
+            dataset_source_repo=mock_dataset_source_repo,
+            dataset_storage_repo=mock_dataset_storage_repo,
+            dataset_deletion_repo=mock_dataset_deletion_repo,
+            broadcaster=mock_broadcaster,
+            settings=MockSettings(),
+        )
+
+        # Call create_dataset method
+        service.create_dataset()
+
+        # Assert we only called store_dataset once
+        mock_dataset_storage_repo.store_dataset.assert_called_once()
+
+        # Get the arguments the repository was called with
+        args, kwargs = mock_dataset_storage_repo.store_dataset.call_args
+
+        # Extract just the dataset_metadata argument
+        dataset_metadata: DatasetMetadataWithoutId = kwargs['dataset_metadata']
+
+        # Assert the metadata contains correct data
+        assert dataset_metadata.survey_id == survey_id
+        assert dataset_metadata.period_id == period_id
+        assert dataset_metadata.sds_dataset_version == 1
+
+    def test_stored_successfully_when_created(
+        self,
+        mock_dataset_source_repo: DatasetSourceRepositoryInterface,
+        mock_dataset_storage_repo: DatasetStorageRepositoryInterface,
+        mock_dataset_deletion_repo: DatasetDeletionRepositoryInterface,
+        mock_broadcaster,
+        raw_dataset_factory: RawDatasetFactory
+    ):
+        """
+        Test the dataset_storage_repo is called correctly when a valid
+        dataset is created
+        """
+
+        # Use predictable survey_id and period_id
+        survey_id = "123"
+        period_id = "456"
+
+        # ------------------------
+        # Source repository mocks
+        # ------------------------
+
+        # Mock the source repo to return a valid JSON filename
+        mock_dataset_source_repo.get_oldest_filename.return_value = "valid-filename.json"
+
+        # Mock the source repo to return valid RawDataset
+        # with some fake unit_data to test if this is correctly formatted on save
+        mock_dataset_source_repo.get_raw_data.return_value = raw_dataset_factory.build(
+            survey_id=survey_id,
+            period_id=period_id,
+            data=[
+                {
+                    "identifier": "abc",
+                    "unit_data": ["hello", "world"],
+                },
+                {
+                    "identifier": "def",
+                    "unit_data": []
+                },
+                {
+                    "identifier": "ghi",
+                    "unit_data": ["test"]
+                }
+            ]
+        )
+
+        # ------------------------
+        # Storage repository mocks
+        # ------------------------
+
+        # Mock the current storage repository (firestore) to force version 1
+        mock_dataset_storage_repo.get_latest_dataset_metadata.return_value = None
+
+        # Create mock settings
+        class MockSettings:
+            autodelete_dataset = False
+            retain_old_datasets = False
+
+        # Create a DatasetService
+        service = DatasetService(
+            dataset_source_repo=mock_dataset_source_repo,
+            dataset_storage_repo=mock_dataset_storage_repo,
+            dataset_deletion_repo=mock_dataset_deletion_repo,
+            broadcaster=mock_broadcaster,
+            settings=MockSettings(),
+        )
+
+        # Call create_dataset method
+        service.create_dataset()
+
+        # Assert the mock_dataset_storage_repo is called
+        mock_dataset_storage_repo.store_dataset.assert_called_once()
+
+        args, kwargs = mock_dataset_storage_repo.store_dataset.call_args
+
+        # ------------------------
+        # Check unit_data_identifiers
+        # ------------------------
+
+        unit_data_identifiers = kwargs['unit_data_identifiers']
+
+        expected_identifiers = [
+            "abc", "def", "ghi"
+        ]
+
+        assert unit_data_identifiers == expected_identifiers
+
+        # ------------------------
+        # Check unit_data_collection_with_metadata
+        # ------------------------
+
+        unit_data_collection_with_metadata = kwargs['unit_data_collection_with_metadata']
+
+        # There should be 3 sets of unit_data
+        assert len(unit_data_collection_with_metadata) == 3
+
+        # Each one should have survey_id and period_id that match
+        # unit_data should match what we mocked
+
+        assert unit_data_collection_with_metadata[0].survey_id == survey_id
+        assert unit_data_collection_with_metadata[0].period_id == period_id
+        assert unit_data_collection_with_metadata[0].data == ["hello", "world"]
+
+        assert unit_data_collection_with_metadata[1].survey_id == survey_id
+        assert unit_data_collection_with_metadata[1].period_id == period_id
+        assert unit_data_collection_with_metadata[1].data == []
+
+        assert unit_data_collection_with_metadata[2].survey_id == survey_id
+        assert unit_data_collection_with_metadata[2].period_id == period_id
+        assert unit_data_collection_with_metadata[2].data == ["test"]
+
+    def test_broadcasts_dataset_when_created_successfully(
+        self,
+        mock_dataset_source_repo: DatasetSourceRepositoryInterface,
+        mock_dataset_storage_repo: DatasetStorageRepositoryInterface,
+        mock_dataset_deletion_repo: DatasetDeletionRepositoryInterface,
+        mock_broadcaster: MockBroadcaster,
+        raw_dataset_factory: RawDatasetFactory,
+    ):
+        """
+        Test that if a dataset is created successfully its metadata
+        is broadcasted
+        """
+
+        # Use predictable survey_id and period
+        survey_id = "123"
+        period_id = "456"
+
+        # ------------------------
+        # Source repository mocks
+        # ------------------------
+
+        # Mock the source repo to return a valid JSON filename
+        mock_dataset_source_repo.get_oldest_filename.return_value = "valid-filename.json"
+
+        # Mock the source repo to return valid RawDataset
+        mock_dataset_source_repo.get_raw_data.return_value = raw_dataset_factory.build(
+            survey_id=survey_id,
+            period_id=period_id,
+        )
+
+        # ------------------------
+        # Storage repository mocks
+        # ------------------------
+
+        # Mock the current storage repository (firestore) to force version 1
+        mock_dataset_storage_repo.get_latest_dataset_metadata.return_value = None
+
+        # Create mock settings
+        class MockSettings:
+            autodelete_dataset = False
+            retain_old_datasets = False
+
+        # Create a DatasetService
+        service = DatasetService(
+            dataset_source_repo=mock_dataset_source_repo,
+            dataset_storage_repo=mock_dataset_storage_repo,
+            dataset_deletion_repo=mock_dataset_deletion_repo,
+            broadcaster=mock_broadcaster,
+            settings=MockSettings(),
+        )
+
+        # Call create_dataset method
+        service.create_dataset()
+
+        # Get all the datasets broadcast to the mock_broadcaster
+        broadcast_datasets = mock_broadcaster.broadcasted_datasets
+
+        # Assert it was just the once
+        assert len(broadcast_datasets) == 1
+
+        # Fetch the broadcast dataset
+        broadcast_dataset: DatasetMetadata = broadcast_datasets[0]
+
+        assert broadcast_dataset.survey_id == survey_id
+        assert broadcast_dataset.period_id == period_id
+
+    def test_cleanup_old_dataset_version_when_created_successfully(
+        self,
+        mock_dataset_source_repo: DatasetSourceRepositoryInterface,
+        mock_dataset_storage_repo: DatasetStorageRepositoryInterface,
+        mock_dataset_deletion_repo: DatasetDeletionRepositoryInterface,
+        mock_broadcaster,
+        raw_dataset_factory: RawDatasetFactory,
+        dataset_metadata_without_id_factory: DatasetMetadataWithoutIdFactory
+    ):
+        """
+        Test that if a new version of the dataset is created successfully
+        and retain_old_datasets is False then the previous version is deleted
+        """
+
+        # Use predictable survey_id and period
+        survey_id = "123"
+        period_id = "456"
+
+        # ------------------------
+        # Source repository mocks
+        # ------------------------
+
+        # Mock the source repo to return a valid JSON filename
+        mock_dataset_source_repo.get_oldest_filename.return_value = "valid-filename.json"
+
+        # Mock the source repo to return valid RawDataset
+        mock_dataset_source_repo.get_raw_data.return_value = raw_dataset_factory.build(
+            survey_id=survey_id,
+            period_id=period_id,
+        )
+
+        # ------------------------
+        # Storage repository mocks
+        # ------------------------
+
+        # Mock the current storage repository (firestore)
+        # Having a sds_dataset_version of 3 (this will be deleted later by cleanup)
+        mock_dataset_storage_repo.get_latest_dataset_metadata.return_value = dataset_metadata_without_id_factory.build(
+            survey_id=survey_id,
+            period_id=period_id,
+            sds_dataset_version=3,
+        )
+
+        # Create mock settings
+        class MockSettings:
+            autodelete_dataset = False
+            retain_old_datasets = False
+
+        # Create a DatasetService
+        service = DatasetService(
+            dataset_source_repo=mock_dataset_source_repo,
+            dataset_storage_repo=mock_dataset_storage_repo,
+            dataset_deletion_repo=mock_dataset_deletion_repo,
+            broadcaster=mock_broadcaster,
+            settings=MockSettings(),
+        )
+
+        # Call create_dataset method
+        service.create_dataset()
+
+        # Assert the dataset_storage_repo.delete_dataset_version method was called to delete the old version
+        mock_dataset_storage_repo.delete_dataset_version.assert_called_once()
+
+        # Get the arguments the repository was called with
+        args, kwargs = mock_dataset_storage_repo.delete_dataset_version.call_args
+
+        # Get the version
+        version_called_with = kwargs["version"]
+
+        # Assert it matches the one we mocked earlier
+        assert version_called_with == 3
+
+    def test_cleanup_old_dataset_version_does_not_delete_when_retain_flag_is_true(
+        self,
+        mock_dataset_source_repo: DatasetSourceRepositoryInterface,
+        mock_dataset_storage_repo: DatasetStorageRepositoryInterface,
+        mock_dataset_deletion_repo: DatasetDeletionRepositoryInterface,
+        mock_broadcaster,
+        raw_dataset_factory: RawDatasetFactory,
+        dataset_metadata_without_id_factory: DatasetMetadataWithoutIdFactory
+    ):
+        """
+        Test that if a new version of the dataset is created successfully
+        and retain_old_datasets is True, then nothing is deleted
+        """
+
+        # Use predictable survey_id and period
+        survey_id = "123"
+        period_id = "456"
+
+        # ------------------------
+        # Source repository mocks
+        # ------------------------
+
+        # Mock the source repo to return a valid JSON filename
+        mock_dataset_source_repo.get_oldest_filename.return_value = "valid-filename.json"
+
+        # Mock the source repo to return valid RawDataset
+        mock_dataset_source_repo.get_raw_data.return_value = raw_dataset_factory.build(
+            survey_id=survey_id,
+            period_id=period_id,
+        )
+
+        # ------------------------
+        # Storage repository mocks
+        # ------------------------
+
+        # Mock the current storage repository (firestore)
+        # Having a sds_dataset_version of 3
+        mock_dataset_storage_repo.get_latest_dataset_metadata.return_value = dataset_metadata_without_id_factory.build(
+            survey_id=survey_id,
+            period_id=period_id,
+            sds_dataset_version=3,
+        )
+
+        # Create mock settings
+        class MockSettings:
+            autodelete_dataset = False
+            retain_old_datasets = True  # Set the retain flag to True to prevent deletion
+
+        # Create a DatasetService
+        service = DatasetService(
+            dataset_source_repo=mock_dataset_source_repo,
+            dataset_storage_repo=mock_dataset_storage_repo,
+            dataset_deletion_repo=mock_dataset_deletion_repo,
+            broadcaster=mock_broadcaster,
+            settings=MockSettings(),
+        )
+
+        # Call create_dataset method
+        service.create_dataset()
+
+        # Assert the dataset_storage_repo.delete_dataset_version method was NOT called
+        mock_dataset_storage_repo.delete_dataset_version.assert_not_called()
+
+
+class TestDeleteDataset:
+
+    def test_raises_exception_if_no_datasets_to_delete(
+        self,
+        mock_dataset_source_repo: DatasetSourceRepositoryInterface,
+        mock_dataset_storage_repo: DatasetStorageRepositoryInterface,
+        mock_dataset_deletion_repo: DatasetDeletionRepositoryInterface,
+        mock_broadcaster,
+    ):
+        """
+        Test that if there are no delete records, a DatasetDeletionEmptyException is raised
+        """
+
+        # ------------------------
+        # Dataset deletion repository mocks
+        # ------------------------
+
+        # Mock the dataset deletion repository to return None (no records)
+        mock_dataset_deletion_repo.get_dataset_to_delete.return_value = None
+
+        # Create mock settings
+        class MockSettings:
+            autodelete_dataset = False
+            retain_old_datasets = False
+
+        # Create a DatasetService
+        service = DatasetService(
+            dataset_source_repo=mock_dataset_source_repo,
+            dataset_storage_repo=mock_dataset_storage_repo,
+            dataset_deletion_repo=mock_dataset_deletion_repo,
+            broadcaster=mock_broadcaster,
+            settings=MockSettings(),
+        )
+
+        # Assert the exception is raised
+        with pytest.raises(DatasetDeletionEmptyException):
+            # Call delete_dataset method
+            service.delete_dataset()
+
+    def test_raises_exception_and_updates_deletion_record_if_error_occurs_during_deletion(
+        self,
+        mock_dataset_source_repo: DatasetSourceRepositoryInterface,
+        mock_dataset_storage_repo: DatasetStorageRepositoryInterface,
+        mock_dataset_deletion_repo: DatasetDeletionRepositoryInterface,
+        mock_broadcaster,
+    ):
+        """
+        Test that if a problem occurs during deletion, a DatasetDeletionException is raised
+        and the deletion record is updated to "Error"
+        """
+
+        # ------------------------
+        # Dataset deletion repository mocks
+        # ------------------------
+
+        # Mock the dataset deletion repository to return a fake guid
+        mock_dataset_deletion_repo.get_dataset_to_delete.return_value = "123"
+
+        # ------------------------
+        # Dataset storage repository mocks
+        # ------------------------
+
+        def error():
+            raise Exception("Problem")
+
+        # Mock the delete method to throw some sort of error
+        mock_dataset_storage_repo.delete_dataset_by_guid.side_effect = error
+
+        # Create mock settings
+        class MockSettings:
+            autodelete_dataset = False
+            retain_old_datasets = False
+
+        # Create a DatasetService
+        service = DatasetService(
+            dataset_source_repo=mock_dataset_source_repo,
+            dataset_storage_repo=mock_dataset_storage_repo,
+            dataset_deletion_repo=mock_dataset_deletion_repo,
+            broadcaster=mock_broadcaster,
+            settings=MockSettings(),
+        )
+
+        # Assert the exception is raised
+        with pytest.raises(DatasetDeletionException):
+            # Call delete_dataset method
+            service.delete_dataset()
+
+        # Get the calls for the mock_dataset_deletion_repo
+        calls = mock_dataset_deletion_repo.mark_record_status.call_args_list
+
+        first_call = calls[0]
+        second_call = calls[1]
+
+        assert first_call.kwargs["guid"] == "123"
+        assert first_call.kwargs["status"] == DeleteStatus.PROCESSING
+
+        assert second_call.kwargs["guid"] == "123"
+        assert second_call.kwargs["status"] == DeleteStatus.ERROR
+
+    def test_successful_deletion_is_marked_correctly(
+        self,
+        mock_dataset_source_repo: DatasetSourceRepositoryInterface,
+        mock_dataset_storage_repo: DatasetStorageRepositoryInterface,
+        mock_dataset_deletion_repo: DatasetDeletionRepositoryInterface,
+        mock_broadcaster,
+    ):
+        """
+        Test that a successful deletion record is marked as "Deleted"
+        """
+
+        # ------------------------
+        # Dataset deletion repository mocks
+        # ------------------------
+
+        # Mock the dataset deletion repository to return a fake guid
+        mock_dataset_deletion_repo.get_dataset_to_delete.return_value = "123"
+
+        # Create mock settings
+        class MockSettings:
+            autodelete_dataset = False
+            retain_old_datasets = False
+
+        # Create a DatasetService
+        service = DatasetService(
+            dataset_source_repo=mock_dataset_source_repo,
+            dataset_storage_repo=mock_dataset_storage_repo,
+            dataset_deletion_repo=mock_dataset_deletion_repo,
+            broadcaster=mock_broadcaster,
+            settings=MockSettings(),
+        )
+
+        # Call delete_dataset method
+        service.delete_dataset()
+
+        # Get the calls for the mock_dataset_deletion_repo
+        calls = mock_dataset_deletion_repo.mark_record_status.call_args_list
+
+        first_call = calls[0]
+        second_call = calls[1]
+
+        assert first_call.kwargs["guid"] == "123"
+        assert first_call.kwargs["status"] == DeleteStatus.PROCESSING
+
+        assert second_call.kwargs["guid"] == "123"
+        assert second_call.kwargs["status"] == DeleteStatus.DELETED
