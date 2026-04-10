@@ -111,16 +111,30 @@ def production(container: Container):
 
 def local_storage_firestore(container: Container):
 
-    # Start from dev baseline
-    dev(container)
-
     @dependency_definition(container)
     def build_firestore_dataset_storage_repository() -> FirestoreDatasetStorageRepository:
         return FirestoreDatasetStorageRepository(
             settings=container[Settings],
         )
 
+    container[DatasetSourceRepositoryInterface] = (
+        FakeDatasetSourceRepository
+    )
+
     container[DatasetStorageRepositoryInterface] = FirestoreDatasetStorageRepository
+
+    container[DatasetDeletionRepositoryInterface] = (
+        FakeDatasetDeletionRepository
+    )
+
+    container[DatasetBroadcastInterface] = (
+        FakeBroadcaster
+    )
+
+    container[SchemaService] = SchemaService(
+        bucket_publisher=FakePublisher(name="Fake bucket publisher"),
+        repository_publisher=FakePublisher(name="Fake github publisher"),
+    )
 
 
 # -------------------------
