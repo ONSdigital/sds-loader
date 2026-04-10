@@ -49,6 +49,10 @@ make format
 make test
 ```
 
+## OpenApi spec
+
+[http://0.0.0.0:5000/docs](http://0.0.0.0:5000/docs)
+
 ## Dockerize
 
 ```

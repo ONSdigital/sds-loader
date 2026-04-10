@@ -27,7 +27,7 @@ class DatasetSettings(Protocol):
     """
 
     autodelete_dataset: bool
-    retain_old_datasets: bool = True
+    retain_old_datasets: bool
 
 
 class DatasetService:
