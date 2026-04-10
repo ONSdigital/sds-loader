@@ -59,4 +59,28 @@ make test
 docker build -t sds-loader .
 ```
 
+## Firestore simulator
+
+```
+
+export FIRESTORE_EMULATOR_HOST=localhost:8080
+export GCLOUD_PROJECT=ons-sds-sandbox
+
+```
+```
+docker run \
+  --rm \
+  -p=9000:9000 \
+  -p=8080:8080 \
+  -p=4000:4000 \
+  -p=9099:9099 \
+  -p=8085:8085 \
+  -p=5001:5001 \
+  -p=9199:9199 \
+  --env "GCP_PROJECT=ons-sds-sandbox" \
+  --env "ENABLE_UI=true" \
+  spine3/firebase-emulator
+```
+
+
 
