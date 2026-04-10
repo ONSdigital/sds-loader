@@ -573,15 +573,15 @@ class TestCreateDataset:
             data=[
                 {
                     "identifier": "abc",
-                    "unit_data": ["hello", "world"],
+                    "unit_data": "hello",
                 },
                 {
                     "identifier": "def",
-                    "unit_data": []
+                    "unit_data": "world"
                 },
                 {
                     "identifier": "ghi",
-                    "unit_data": ["test"]
+                    "unit_data": "test"
                 }
             ]
         )
@@ -641,15 +641,15 @@ class TestCreateDataset:
 
         assert unit_data_collection_with_metadata[0].survey_id == survey_id
         assert unit_data_collection_with_metadata[0].period_id == period_id
-        assert unit_data_collection_with_metadata[0].data == ["hello", "world"]
+        assert unit_data_collection_with_metadata[0].data == "hello"
 
         assert unit_data_collection_with_metadata[1].survey_id == survey_id
         assert unit_data_collection_with_metadata[1].period_id == period_id
-        assert unit_data_collection_with_metadata[1].data == []
+        assert unit_data_collection_with_metadata[1].data == "world"
 
         assert unit_data_collection_with_metadata[2].survey_id == survey_id
         assert unit_data_collection_with_metadata[2].period_id == period_id
-        assert unit_data_collection_with_metadata[2].data == ["test"]
+        assert unit_data_collection_with_metadata[2].data == "test"
 
     def test_broadcasts_dataset_when_created_successfully(
         self,

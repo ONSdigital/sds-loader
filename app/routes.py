@@ -121,6 +121,8 @@ async def create_dataset(
 
     except (DatasetException, Exception) as e:
 
+        logger.exception("Exception creating dataset")
+
         return JSONResponse(
             status_code=500,
             content={"success": False, "message": "Exception creating dataset: " + str(e)},

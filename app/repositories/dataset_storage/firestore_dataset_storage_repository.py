@@ -99,6 +99,7 @@ class FirestoreDatasetStorageRepository(DatasetStorageRepositoryInterface):
         # Write to firebase in batches or not depends on the settings
 
         if self.settings.should_batch:
+            logger.info("Writing to Firestore in BATCH mode")
             self._store_dataset_with_batching(
                 dataset_id=dataset_id,
                 dataset_metadata=dataset_metadata,
@@ -106,6 +107,7 @@ class FirestoreDatasetStorageRepository(DatasetStorageRepositoryInterface):
                 unit_data_identifiers=unit_data_identifiers
             )
         else:
+            logger.info("Writing to Firestore in NORMAL mode")
             self._store_dataset_without_batching(
                 dataset_id=dataset_id,
                 dataset_metadata=dataset_metadata,
@@ -172,7 +174,7 @@ class FirestoreDatasetStorageRepository(DatasetStorageRepositoryInterface):
             """
 
             # Work out the size of this unit
-            unit_size = len(unit_data.model_dump().encode('utf-8'))
+            unit_size = len(unit_data.model_dump_json().encode('utf-8'))
 
             # Work out if the current batch is too big already
             if (batch_size_bytes + unit_size >= self.MAX_BATCH_SIZE_BYTES) or (batch_num_records + 1 >= self.MAX_NUMBER_OF_WRITES_PER_BATCH):

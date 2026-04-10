@@ -8,7 +8,7 @@ class RawDatasetDataItem(AllowExtraBase):
     """
     Represents an item in the "data" block of the raw dataset
     """
-    unit_data: list | dict
+    unit_data: str
     identifier: str
 
 
@@ -33,7 +33,7 @@ class UnitDataset(AllowExtraBase):
     survey_id: str
     period_id: str
     form_types: list[str]
-    data: dict | list  # The actual data
+    data: str
 
 
 class DatasetMetadataWithoutId(AllowExtraBase):
