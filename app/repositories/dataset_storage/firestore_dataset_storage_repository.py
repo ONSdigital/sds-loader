@@ -194,11 +194,6 @@ class FirestoreDatasetStorageRepository(DatasetStorageRepositoryInterface):
         if batch_size_bytes > 0:
             batch.commit()
 
-
-
-
-
-
     def delete_dataset_version(
         self,
         survey_id: str,
