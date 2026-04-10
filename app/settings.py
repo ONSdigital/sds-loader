@@ -12,10 +12,10 @@ class QuickSettings(BaseSettings):
     SDX Base populates the AppSettings class.
     """
     model_config = SettingsConfigDict(env_file='.env', extra='ignore')
-    env: str = 'production'
+    profile: str = 'prod'
 
-    def is_production(self) -> bool:
-        return self.env.lower() in ('production', 'prod')
+    def get_profile(self) -> str:
+        return self.profile.lower()
 
 
 class Settings(AppSettings):
