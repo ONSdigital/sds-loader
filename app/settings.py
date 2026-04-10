@@ -23,6 +23,7 @@ class Settings(AppSettings):
     project_id: The GCP project ID
     autodelete_dataset: Whether to automatically delete datasets from the source repo (bucket) after publishing
     retain_old_dataset: Whether to retain old versions of an updated dataset in the target repo (firestore)
+    should_batch: Whether to batch write data to firestore to avoid memory limits
     dataset_bucket_name: The bucket name to pick up datasets from
     firestore_database: The Firestore database to publish datasets to
     publish_dataset_topic_id: The Pub/Sub topic ID to publish dataset updates to
@@ -30,6 +31,7 @@ class Settings(AppSettings):
     project_id: str
     autodelete_dataset: bool = True
     retain_old_dataset: bool = True
+    should_batch: bool = True
     dataset_bucket_name: str
     firestore_database: str
     publish_dataset_topic_id: str

@@ -30,7 +30,7 @@ class SchemaService:
         self.bucket_publisher = bucket_publisher
         self.repository_publisher = repository_publisher
 
-    def _publish_single_file(self, file_name: str, publisher: PublisherProtocol):
+    def _publish_single_file(self, file_name: str, publisher: PublisherProtocol): # noqa
         """
         Publish a single file using a given publisher
         :param file_name: name of the file to be published
@@ -42,7 +42,7 @@ class SchemaService:
         except Exception as e:
             logger.error(f"Failed to publish schema {file_name}: {e}")
 
-    def _filter_github_files(self, files: list[str]) -> list[str]:
+    def _filter_github_files(self, files: list[str]) -> list[str]: # noqa
         """
         Filter a list of file names to publish by the regex
         """
@@ -59,7 +59,7 @@ class SchemaService:
         If any schema fails to publish, it will print an error message but continue processing the remaining files.
 
         :param source: string indicating the source of the schema files to be published
-            Options are "github", "bucket"
+            Options are "GitHub", "bucket"
         :param file_list: List of file names to publish
         """
 
