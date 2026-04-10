@@ -27,8 +27,10 @@ class Settings(AppSettings):
     dataset_bucket_name: The bucket name to pick up datasets from
     firestore_database: The Firestore database to publish datasets to
     publish_dataset_topic_id: The Pub/Sub topic ID to publish dataset updates to
+
+    # Note this will get overridden by any duplicate entries in bash profile
     """
-    project_id: str
+    project_id: str = "ons-sds-sandbox"
     autodelete_dataset: bool = True
     retain_old_dataset: bool = True
     should_batch: bool = True

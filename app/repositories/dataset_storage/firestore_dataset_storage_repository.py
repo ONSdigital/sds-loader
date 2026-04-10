@@ -31,8 +31,10 @@ class FirestoreDatasetStorageRepository(DatasetStorageRepositoryInterface):
         # Create a firestore client
         self.client = firestore.Client(
             project=self.settings.project_id,
-            database=self.settings.firestore_database
+            database=self.settings.firestore_database,
         )
+
+        logger.info(f"Connected to Firestore with project_id: {settings.project_id} and database: {settings.firestore_database}")
 
         # Max size in bytes we can upload in one batch
         self.MAX_BATCH_SIZE_BYTES = 9 * 1024 * 1024
