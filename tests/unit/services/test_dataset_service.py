@@ -1,4 +1,3 @@
-
 import pytest
 
 from app.enums.delete_status import DeleteStatus
@@ -19,13 +18,12 @@ from tests.conftest import MockBroadcaster
 
 
 class TestCreateDataset:
-
     def test_raises_exception_if_source_is_empty(
         self,
         mock_dataset_source_repo: DatasetSourceRepositoryInterface,
         mock_dataset_storage_repo: DatasetStorageRepositoryInterface,
         mock_dataset_deletion_repo: DatasetDeletionRepositoryInterface,
-        mock_broadcaster
+        mock_broadcaster,
     ):
         """
         Test that when the dataset source repository where datasets are picked up from is empty
@@ -51,7 +49,6 @@ class TestCreateDataset:
 
         # Call create_dataset and assert that it raises the expected exception
         with pytest.raises(DatasetSourceEmptyException):
-
             service.create_dataset()
 
     def test_raises_exception_if_filename_invalid(
@@ -59,7 +56,7 @@ class TestCreateDataset:
         mock_dataset_source_repo: DatasetSourceRepositoryInterface,
         mock_dataset_storage_repo: DatasetStorageRepositoryInterface,
         mock_dataset_deletion_repo: DatasetDeletionRepositoryInterface,
-        mock_broadcaster
+        mock_broadcaster,
     ):
         """
         Test that the filename in the dataset source repository is invalid
@@ -95,7 +92,7 @@ class TestCreateDataset:
         mock_dataset_source_repo: DatasetSourceRepositoryInterface,
         mock_dataset_storage_repo: DatasetStorageRepositoryInterface,
         mock_dataset_deletion_repo: DatasetDeletionRepositoryInterface,
-        mock_broadcaster
+        mock_broadcaster,
     ):
         """
         Test that the filename in the dataset source repository is invalid
@@ -133,7 +130,7 @@ class TestCreateDataset:
         mock_dataset_deletion_repo: DatasetDeletionRepositoryInterface,
         mock_broadcaster,
         raw_dataset_factory: RawDatasetFactory,
-        dataset_metadata_without_id_factory: DatasetMetadataWithoutIdFactory
+        dataset_metadata_without_id_factory: DatasetMetadataWithoutIdFactory,
     ):
         """
         Test that if an exception occurs when saving the dataset to the storage repository,
@@ -186,7 +183,7 @@ class TestCreateDataset:
         mock_dataset_source_repo: DatasetSourceRepositoryInterface,
         mock_dataset_storage_repo: DatasetStorageRepositoryInterface,
         mock_dataset_deletion_repo: DatasetDeletionRepositoryInterface,
-        mock_broadcaster
+        mock_broadcaster,
     ):
         """
         Test that when the dataset is read in from the source repository
@@ -225,7 +222,7 @@ class TestCreateDataset:
         mock_dataset_source_repo: DatasetSourceRepositoryInterface,
         mock_dataset_storage_repo: DatasetStorageRepositoryInterface,
         mock_dataset_deletion_repo: DatasetDeletionRepositoryInterface,
-        mock_broadcaster
+        mock_broadcaster,
     ):
         """
         Test that when the dataset is read in from the source repository
@@ -264,7 +261,7 @@ class TestCreateDataset:
         mock_dataset_source_repo: DatasetSourceRepositoryInterface,
         mock_dataset_storage_repo: DatasetStorageRepositoryInterface,
         mock_dataset_deletion_repo: DatasetDeletionRepositoryInterface,
-        mock_broadcaster
+        mock_broadcaster,
     ):
         """
         Test that if the specified filename for a dataset cannot be found in the source repository
@@ -302,7 +299,7 @@ class TestCreateDataset:
         mock_dataset_deletion_repo: DatasetDeletionRepositoryInterface,
         mock_broadcaster,
         raw_dataset_factory: RawDatasetFactory,
-        dataset_metadata_without_id_factory: DatasetMetadataWithoutIdFactory
+        dataset_metadata_without_id_factory: DatasetMetadataWithoutIdFactory,
     ):
         """
         Test that when autodelete is set to True the dataset is automatically deleted
@@ -354,7 +351,7 @@ class TestCreateDataset:
         mock_dataset_deletion_repo: DatasetDeletionRepositoryInterface,
         mock_broadcaster,
         raw_dataset_factory: RawDatasetFactory,
-        dataset_metadata_without_id_factory: DatasetMetadataWithoutIdFactory
+        dataset_metadata_without_id_factory: DatasetMetadataWithoutIdFactory,
     ):
         """
         Test that when autodelete is set to False the dataset should not be autodeleted
@@ -405,7 +402,7 @@ class TestCreateDataset:
         mock_dataset_deletion_repo: DatasetDeletionRepositoryInterface,
         mock_broadcaster,
         raw_dataset_factory: RawDatasetFactory,
-        dataset_metadata_without_id_factory: DatasetMetadataWithoutIdFactory
+        dataset_metadata_without_id_factory: DatasetMetadataWithoutIdFactory,
     ):
         """
         Test that if a dataset exists for the current survey_id and period
@@ -465,7 +462,7 @@ class TestCreateDataset:
         args, kwargs = mock_dataset_storage_repo.store_dataset.call_args
 
         # Extract just the dataset_metadata argument
-        dataset_metadata: DatasetMetadataWithoutId = kwargs['dataset_metadata']
+        dataset_metadata: DatasetMetadataWithoutId = kwargs["dataset_metadata"]
 
         # Assert the metadata contains correct data
         assert dataset_metadata.survey_id == survey_id
@@ -534,7 +531,7 @@ class TestCreateDataset:
         args, kwargs = mock_dataset_storage_repo.store_dataset.call_args
 
         # Extract just the dataset_metadata argument
-        dataset_metadata: DatasetMetadataWithoutId = kwargs['dataset_metadata']
+        dataset_metadata: DatasetMetadataWithoutId = kwargs["dataset_metadata"]
 
         # Assert the metadata contains correct data
         assert dataset_metadata.survey_id == survey_id
@@ -547,7 +544,7 @@ class TestCreateDataset:
         mock_dataset_storage_repo: DatasetStorageRepositoryInterface,
         mock_dataset_deletion_repo: DatasetDeletionRepositoryInterface,
         mock_broadcaster,
-        raw_dataset_factory: RawDatasetFactory
+        raw_dataset_factory: RawDatasetFactory,
     ):
         """
         Test the dataset_storage_repo is called correctly when a valid
@@ -575,15 +572,9 @@ class TestCreateDataset:
                     "identifier": "abc",
                     "unit_data": "hello",
                 },
-                {
-                    "identifier": "def",
-                    "unit_data": "world"
-                },
-                {
-                    "identifier": "ghi",
-                    "unit_data": "test"
-                }
-            ]
+                {"identifier": "def", "unit_data": "world"},
+                {"identifier": "ghi", "unit_data": "test"},
+            ],
         )
 
         # ------------------------
@@ -619,11 +610,9 @@ class TestCreateDataset:
         # Check unit_data_identifiers
         # ------------------------
 
-        unit_data_identifiers = kwargs['unit_data_identifiers']
+        unit_data_identifiers = kwargs["unit_data_identifiers"]
 
-        expected_identifiers = [
-            "abc", "def", "ghi"
-        ]
+        expected_identifiers = ["abc", "def", "ghi"]
 
         assert unit_data_identifiers == expected_identifiers
 
@@ -631,7 +620,7 @@ class TestCreateDataset:
         # Check unit_data_collection_with_metadata
         # ------------------------
 
-        unit_data_collection_with_metadata = kwargs['unit_data_collection_with_metadata']
+        unit_data_collection_with_metadata = kwargs["unit_data_collection_with_metadata"]
 
         # There should be 3 sets of unit_data
         assert len(unit_data_collection_with_metadata) == 3
@@ -724,7 +713,7 @@ class TestCreateDataset:
         mock_dataset_deletion_repo: DatasetDeletionRepositoryInterface,
         mock_broadcaster,
         raw_dataset_factory: RawDatasetFactory,
-        dataset_metadata_without_id_factory: DatasetMetadataWithoutIdFactory
+        dataset_metadata_without_id_factory: DatasetMetadataWithoutIdFactory,
     ):
         """
         Test that if a new version of the dataset is created successfully
@@ -796,7 +785,7 @@ class TestCreateDataset:
         mock_dataset_deletion_repo: DatasetDeletionRepositoryInterface,
         mock_broadcaster,
         raw_dataset_factory: RawDatasetFactory,
-        dataset_metadata_without_id_factory: DatasetMetadataWithoutIdFactory
+        dataset_metadata_without_id_factory: DatasetMetadataWithoutIdFactory,
     ):
         """
         Test that if a new version of the dataset is created successfully
@@ -854,7 +843,6 @@ class TestCreateDataset:
 
 
 class TestDeleteDataset:
-
     def test_raises_exception_if_no_datasets_to_delete(
         self,
         mock_dataset_source_repo: DatasetSourceRepositoryInterface,

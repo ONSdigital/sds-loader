@@ -7,7 +7,6 @@ from tests.conftest import MockBroadcaster
 
 
 class TestDeleteDatasetEndpoint:
-
     def test_returns_200_when_no_datasets_are_to_be_deleted(
         self,
         test_app: FastAPI,
@@ -29,7 +28,6 @@ class TestDeleteDatasetEndpoint:
         mock_dataset_deletion_repo.get_dataset_to_delete.return_value = None
 
         with DEPS.override_for_test() as test_container:
-
             # For this test we set autodelete to True
             class MockSettings:
                 autodelete_dataset: bool = False
@@ -41,7 +39,7 @@ class TestDeleteDatasetEndpoint:
                 dataset_storage_repo=mock_dataset_storage_repo,
                 dataset_deletion_repo=mock_dataset_deletion_repo,
                 broadcaster=mock_broadcaster,
-                settings=MockSettings()
+                settings=MockSettings(),
             )
 
             # Create a TestClient instance
@@ -86,7 +84,6 @@ class TestDeleteDatasetEndpoint:
         mock_dataset_storage_repo.delete_dataset_by_guid.side_effect = error
 
         with DEPS.override_for_test() as test_container:
-
             # For this test we set autodelete to True
             class MockSettings:
                 autodelete_dataset: bool = False
@@ -98,7 +95,7 @@ class TestDeleteDatasetEndpoint:
                 dataset_storage_repo=mock_dataset_storage_repo,
                 dataset_deletion_repo=mock_dataset_deletion_repo,
                 broadcaster=mock_broadcaster,
-                settings=MockSettings()
+                settings=MockSettings(),
             )
 
             # Create a TestClient instance

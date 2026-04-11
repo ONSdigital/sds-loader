@@ -12,13 +12,11 @@ def raise_schema_error():
 
 
 class TestPublishNewSchemas:
-
     def test_publish_new_schemas_publishes_after_exception(
         self,
         mock_repo_publisher: MockPublisher,
         mock_bucket_publisher: MockPublisher,
     ):
-
         # Define input filenames
         filenames = [
             "schemas/abc/v1.json",
@@ -37,10 +35,7 @@ class TestPublishNewSchemas:
         )
 
         # Publish schemas from GitHub
-        service.publish_new_schemas(
-            "github",
-            filenames
-        )
+        service.publish_new_schemas("github", filenames)
 
         should_be_published = [
             "schemas/abc/v1.json",
@@ -63,7 +58,6 @@ class TestPublishNewSchemas:
         mock_repo_publisher: MockPublisher,
         mock_bucket_publisher: MockPublisher,
     ):
-
         # Define input filenames
         repo_filenames = [
             "schemas/abc/v1.json",
@@ -85,16 +79,10 @@ class TestPublishNewSchemas:
         )
 
         # Publish the repository filenames
-        service.publish_new_schemas(
-            "github",
-            repo_filenames
-        )
+        service.publish_new_schemas("github", repo_filenames)
 
         # Publish the bucket filenames
-        service.publish_new_schemas(
-            "bucket",
-            bucket_filenames
-        )
+        service.publish_new_schemas("bucket", bucket_filenames)
 
         # Assert all the GitHub files are published
         assert len(mock_repo_publisher.published_schemas) == len(repo_filenames)
@@ -118,13 +106,13 @@ class TestPublishNewSchemas:
         filenames = {
             "schemas/a/b.json": True,
             "schemas/abc/def.json": True,
-            "schemas/a/b.JSON": False,        # case-sensitive
-            "schemas/a/b": False,             # no extension
+            "schemas/a/b.JSON": False,  # case-sensitive
+            "schemas/a/b": False,  # no extension
             "schemas/a/b.json/extra": False,  # too deep
-            "schemas/a//b.json": False,       # empty segment => doesn't match [^/]+
-            "schemas//b.json": False,         # empty segment
-            "schemas/a/": False,              # missing filename
-            "Schemas/a/b.json": False,        # wrong case in prefix
+            "schemas/a//b.json": False,  # empty segment => doesn't match [^/]+
+            "schemas//b.json": False,  # empty segment
+            "schemas/a/": False,  # missing filename
+            "Schemas/a/b.json": False,  # wrong case in prefix
             "other/schemas/a/b.json": False,  # doesn't start with schemas/
         }
 
@@ -133,10 +121,7 @@ class TestPublishNewSchemas:
             bucket_publisher=mock_bucket_publisher,
         )
 
-        service.publish_new_schemas(
-            "github",
-            list(filenames.keys())
-        )
+        service.publish_new_schemas("github", list(filenames.keys()))
 
         # Assert only the valid filenames are published
         assert len(mock_repo_publisher.published_schemas) == 2

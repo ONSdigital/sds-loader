@@ -8,6 +8,7 @@ class RawDatasetDataItem(AllowExtraBase):
     """
     Represents an item in the "data" block of the raw dataset
     """
+
     unit_data: str
     identifier: str
 
@@ -17,6 +18,7 @@ class RawDataset(AllowExtraBase):
     Represents a raw dataset JSON found in the source repository
     (i.e a Bucket)
     """
+
     survey_id: str
     period_id: str
     form_types: list[str]
@@ -29,6 +31,7 @@ class UnitDataset(AllowExtraBase):
     Represents a unit from the datasets "data" block
     along with metadata from the parent dataset
     """
+
     dataset_id: Guid
     survey_id: str
     period_id: str
@@ -41,6 +44,7 @@ class DatasetMetadataWithoutId(AllowExtraBase):
     Represents metadata about a dataset
     without the dataset_id (i.e. Guid)
     """
+
     survey_id: str
     period_id: str
     form_types: list[str]
@@ -55,6 +59,7 @@ class DatasetMetadata(AllowExtraBase):
     """
     Represents metadata about a dataset
     """
+
     dataset_id: Guid
     survey_id: str
     period_id: str

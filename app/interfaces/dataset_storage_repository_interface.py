@@ -13,11 +13,7 @@ class DatasetStorageRepositoryInterface(ABC):
     """
 
     @abstractmethod
-    def get_latest_dataset_metadata(
-        self,
-        survey_id: str,
-        period_id: str
-    ) -> DatasetMetadataWithoutId | None:
+    def get_latest_dataset_metadata(self, survey_id: str, period_id: str) -> DatasetMetadataWithoutId | None:
         """
         Gets the latest dataset for a given survey and period id
 
@@ -49,12 +45,7 @@ class DatasetStorageRepositoryInterface(ABC):
         ...
 
     @abstractmethod
-    def delete_dataset_version(
-        self,
-        survey_id: str,
-        period_id: str,
-        version: int
-    ):
+    def delete_dataset_version(self, survey_id: str, period_id: str, version: int):
         """
         Delete a specific version of the dataset from the repository
 

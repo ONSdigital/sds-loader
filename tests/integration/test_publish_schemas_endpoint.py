@@ -10,16 +10,13 @@ from tests.conftest import MockPublisher
 
 
 class TestPublishSchemasEndpoint:
-
     def _encode_filenames(self, filenames: str) -> Envelope:
         """
         Helper method to encode a string of filenames into the format expected by our endpoint
         """
 
         # Encode the message
-        encoded_data = base64.b64encode(
-            filenames.encode("utf-8")
-        ).decode("utf-8")
+        encoded_data = base64.b64encode(filenames.encode("utf-8")).decode("utf-8")
 
         # Create a fake Message object to simulate a pubsub object
         message: Message = {
@@ -33,10 +30,7 @@ class TestPublishSchemasEndpoint:
         return {"message": message, "subscription": ""}
 
     def test_publish_schemas_to_github_with_all_valid_schemas(
-        self,
-        test_app: FastAPI,
-        mock_repo_publisher: MockPublisher,
-        mock_bucket_publisher: MockPublisher
+        self, test_app: FastAPI, mock_repo_publisher: MockPublisher, mock_bucket_publisher: MockPublisher
     ):
         """
         Test our publish schemas endpoint (to GitHub)
@@ -48,7 +42,6 @@ class TestPublishSchemasEndpoint:
         """
 
         with DEPS.override_for_test() as test_container:
-
             # Create our own schema service to use in this app
             test_container[SchemaService] = SchemaService(
                 repository_publisher=mock_repo_publisher,
@@ -63,8 +56,7 @@ class TestPublishSchemasEndpoint:
 
             # Make a POST request to the /events/schema/publish endpoint and specify "source" to be GitHub
             response = client.post(
-                "/events/schema/publish?source=github",
-                json=self._encode_filenames(received_filenames)
+                "/events/schema/publish?source=github", json=self._encode_filenames(received_filenames)
             )
 
             # Assert a 200 status code
@@ -79,10 +71,7 @@ class TestPublishSchemasEndpoint:
             assert len(mock_bucket_publisher.published_schemas) == 0
 
     def test_publish_schemas_to_bucket_with_all_valid_schemas(
-        self,
-        test_app: FastAPI,
-        mock_repo_publisher: MockPublisher,
-        mock_bucket_publisher: MockPublisher
+        self, test_app: FastAPI, mock_repo_publisher: MockPublisher, mock_bucket_publisher: MockPublisher
     ):
         """
         Test our publish schemas endpoint with a single
@@ -93,7 +82,6 @@ class TestPublishSchemasEndpoint:
         """
 
         with DEPS.override_for_test() as test_container:
-
             # Create our own schema service to use in this app
             test_container[SchemaService] = SchemaService(
                 repository_publisher=mock_repo_publisher,
@@ -108,8 +96,7 @@ class TestPublishSchemasEndpoint:
 
             # Make a POST request to the /events/schema/publish endpoint and specify "source" to be bucket
             response = client.post(
-                "/events/schema/publish?source=bucket",
-                json=self._encode_filenames(received_filenames)
+                "/events/schema/publish?source=bucket", json=self._encode_filenames(received_filenames)
             )
 
             # Assert a 200 status code
@@ -122,10 +109,7 @@ class TestPublishSchemasEndpoint:
             assert len(mock_repo_publisher.published_schemas) == 0
 
     def test_publish_schemas_to_github_with_some_invalid_filenames(
-        self,
-        test_app: FastAPI,
-        mock_repo_publisher: MockPublisher,
-        mock_bucket_publisher: MockPublisher
+        self, test_app: FastAPI, mock_repo_publisher: MockPublisher, mock_bucket_publisher: MockPublisher
     ):
         """
         Test our publish schemas endpoint (to GitHub)
@@ -141,7 +125,6 @@ class TestPublishSchemasEndpoint:
         """
 
         with DEPS.override_for_test() as test_container:
-
             # Create our own schema service to use in this app
             test_container[SchemaService] = SchemaService(
                 repository_publisher=mock_repo_publisher,
@@ -149,15 +132,16 @@ class TestPublishSchemasEndpoint:
             )
 
             # Create fake files to simulate new added schemas sent to loader
-            received_filenames = "schemas/abc/v1.json\nother/foo/v2.json\nschemas/abc/v3.json\nother/foo/v2_template.json"
+            received_filenames = (
+                "schemas/abc/v1.json\nother/foo/v2.json\nschemas/abc/v3.json\nother/foo/v2_template.json"
+            )
 
             # Create a TestClient instance
             client = TestClient(test_app)
 
             # Make a POST request to the /events/schema/publish endpoint and specify "source" to be GitHub
             response = client.post(
-                "/events/schema/publish?source=github",
-                json=self._encode_filenames(received_filenames)
+                "/events/schema/publish?source=github", json=self._encode_filenames(received_filenames)
             )
 
             # Assert a 200 status code

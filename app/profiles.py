@@ -38,23 +38,15 @@ class FakePublisher:
 # Everything fake
 # -------------------------
 
+
 def dev(container: Container):
+    container[DatasetSourceRepositoryInterface] = FakeDatasetSourceRepository
 
-    container[DatasetSourceRepositoryInterface] = (
-        FakeDatasetSourceRepository
-    )
+    container[DatasetStorageRepositoryInterface] = FakeDatasetStorageRepository
 
-    container[DatasetStorageRepositoryInterface] = (
-        FakeDatasetStorageRepository
-    )
+    container[DatasetDeletionRepositoryInterface] = FakeDatasetDeletionRepository
 
-    container[DatasetDeletionRepositoryInterface] = (
-        FakeDatasetDeletionRepository
-    )
-
-    container[DatasetBroadcastInterface] = (
-        FakeBroadcaster
-    )
+    container[DatasetBroadcastInterface] = FakeBroadcaster
 
     container[SchemaService] = SchemaService(
         bucket_publisher=FakePublisher(name="Fake bucket publisher"),
@@ -67,8 +59,8 @@ def dev(container: Container):
 # Everything real
 # -------------------------
 
-def production(container: Container):
 
+def production(container: Container):
     @dependency_definition(container)
     def build_bucket_dataset_source_repository() -> BucketDatasetSourceRepository:
         return BucketDatasetSourceRepository(
@@ -109,27 +101,21 @@ def production(container: Container):
 # Everything fake except FirestoreDatasetStorageRepository
 # -------------------------
 
-def local_storage_firestore(container: Container):
 
+def local_storage_firestore(container: Container):
     @dependency_definition(container)
     def build_firestore_dataset_storage_repository() -> FirestoreDatasetStorageRepository:
         return FirestoreDatasetStorageRepository(
             settings=container[Settings],
         )
 
-    container[DatasetSourceRepositoryInterface] = (
-        FakeDatasetSourceRepository
-    )
+    container[DatasetSourceRepositoryInterface] = FakeDatasetSourceRepository
 
     container[DatasetStorageRepositoryInterface] = FirestoreDatasetStorageRepository
 
-    container[DatasetDeletionRepositoryInterface] = (
-        FakeDatasetDeletionRepository
-    )
+    container[DatasetDeletionRepositoryInterface] = FakeDatasetDeletionRepository
 
-    container[DatasetBroadcastInterface] = (
-        FakeBroadcaster
-    )
+    container[DatasetBroadcastInterface] = FakeBroadcaster
 
     container[SchemaService] = SchemaService(
         bucket_publisher=FakePublisher(name="Fake bucket publisher"),
@@ -142,7 +128,7 @@ def local_storage_firestore(container: Container):
 # -------------------------
 
 PROFILES = {
-    "prod": production,                                  # Everything using production implementations
-    "dev": dev,                                          # Everything using fake implementations
+    "prod": production,  # Everything using production implementations
+    "dev": dev,  # Everything using fake implementations
     "local_storage_firestore": local_storage_firestore,  # Everything fake except FirestoreDatasetStorageRepository
 }

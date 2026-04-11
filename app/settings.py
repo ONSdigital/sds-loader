@@ -11,8 +11,9 @@ class QuickSettings(BaseSettings):
     Quick settings are settings that are needed before
     SDX Base populates the AppSettings class.
     """
-    model_config = SettingsConfigDict(env_file='.env', extra='ignore')
-    profile: str = 'prod'
+
+    model_config = SettingsConfigDict(env_file=".env", extra="ignore")
+    profile: str = "prod"
 
     def get_profile(self) -> str:
         return self.profile.lower()
@@ -30,6 +31,7 @@ class Settings(AppSettings):
 
     # Note this will get overridden by any duplicate entries in bash profile
     """
+
     project_id: str = "ons-sds-sandbox"
     autodelete_dataset: bool = True
     retain_old_dataset: bool = True

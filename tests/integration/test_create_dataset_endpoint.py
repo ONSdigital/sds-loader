@@ -8,7 +8,6 @@ from tests.conftest import MockBroadcaster
 
 
 class TestCreateDatasetEndpoint:
-
     def test_create_dataset_first_version(
         self,
         test_app: FastAPI,
@@ -16,7 +15,7 @@ class TestCreateDatasetEndpoint:
         mock_dataset_storage_repo,
         mock_dataset_deletion_repo,
         mock_broadcaster: MockBroadcaster,
-        raw_dataset_factory: RawDatasetFactory
+        raw_dataset_factory: RawDatasetFactory,
     ):
         """
         Test a happy path for creating a dataset endpoint.
@@ -50,7 +49,6 @@ class TestCreateDatasetEndpoint:
         mock_dataset_storage_repo.get_latest_dataset_metadata.return_value = None
 
         with DEPS.override_for_test() as test_container:
-
             # For this test we set autodelete to True
             class MockSettings:
                 autodelete_dataset: bool = True
@@ -62,7 +60,7 @@ class TestCreateDatasetEndpoint:
                 dataset_storage_repo=mock_dataset_storage_repo,
                 dataset_deletion_repo=mock_dataset_deletion_repo,
                 broadcaster=mock_broadcaster,
-                settings=MockSettings()
+                settings=MockSettings(),
             )
 
             # Create a TestClient instance
@@ -99,7 +97,6 @@ class TestCreateDatasetEndpoint:
         mock_dataset_source_repo.get_oldest_filename.return_value = None
 
         with DEPS.override_for_test() as test_container:
-
             # For this test we set autodelete to True
             class MockSettings:
                 autodelete_dataset: bool = True
@@ -111,7 +108,7 @@ class TestCreateDatasetEndpoint:
                 dataset_storage_repo=mock_dataset_storage_repo,
                 dataset_deletion_repo=mock_dataset_deletion_repo,
                 broadcaster=mock_broadcaster,
-                settings=MockSettings()
+                settings=MockSettings(),
             )
 
             # Create a TestClient instance
@@ -148,7 +145,6 @@ class TestCreateDatasetEndpoint:
         mock_dataset_source_repo.get_oldest_filename.return_value = "invalid"
 
         with DEPS.override_for_test() as test_container:
-
             # For this test we set autodelete to True
             class MockSettings:
                 autodelete_dataset: bool = True
@@ -160,7 +156,7 @@ class TestCreateDatasetEndpoint:
                 dataset_storage_repo=mock_dataset_storage_repo,
                 dataset_deletion_repo=mock_dataset_deletion_repo,
                 broadcaster=mock_broadcaster,
-                settings=MockSettings()
+                settings=MockSettings(),
             )
 
             # Create a TestClient instance

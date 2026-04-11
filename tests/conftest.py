@@ -37,6 +37,7 @@ class MockPublisher:
     Mock Publisher class, allows
     tracking of published schemas and side effects for testing purposes.
     """
+
     def __init__(self, label: str):
         self.label = label
         self.side_effects = {}
@@ -54,6 +55,7 @@ class MockPublisher:
                 return
 
         self.published_schemas.append(file_name)
+
 
 # ------------------------
 # Testing classes for dataset_service
@@ -79,9 +81,7 @@ class MockBroadcaster(DatasetBroadcastInterface):
 
 @pytest.fixture
 def mock_repo_publisher() -> MockPublisher:
-    return MockPublisher(
-        label="repo publisher"
-    )
+    return MockPublisher(label="repo publisher")
 
 
 @pytest.fixture
@@ -89,6 +89,7 @@ def mock_bucket_publisher() -> MockPublisher:
     return MockPublisher(
         label="bucket publisher",
     )
+
 
 # ------------------------
 # Fixtures for dataset_service
@@ -119,6 +120,7 @@ def mock_broadcaster() -> DatasetBroadcastInterface:
 # App fixture
 # ------------------------
 
+
 @pytest.fixture
 def test_app() -> FastAPI:
     """
@@ -138,11 +140,7 @@ def test_app() -> FastAPI:
 
     return initialise(
         settings=FakeSettings,
-        routers=[
-            RouterConfig(
-                router, tx_id_getter=txid_not_applicable
-            )
-        ],
+        routers=[RouterConfig(router, tx_id_getter=txid_not_applicable)],
         proj_root=ROOT,
         secret_reader=MockSecretReader,
     )

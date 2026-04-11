@@ -10,17 +10,12 @@ class FakeDatasetStorageRepository(DatasetStorageRepositoryInterface):
     """
 
     def __init__(self):
-
         # Store datasets in a dictionary
         # key is a tuple of (survey_id, period_id) and value is a 2D list of...
         # [dataset_id, dataset_metadata, unit_data_collection_with_metadata, unit_data_identifiers, marked_for_deletion?]
         self.datasets = {}
 
-    def get_latest_dataset_metadata(
-        self,
-        survey_id: str,
-        period_id: str
-    ) -> DatasetMetadataWithoutId | None:
+    def get_latest_dataset_metadata(self, survey_id: str, period_id: str) -> DatasetMetadataWithoutId | None:
         dataset = self.datasets.get((survey_id, period_id))
         if dataset is None:
             return None
@@ -33,7 +28,7 @@ class FakeDatasetStorageRepository(DatasetStorageRepositoryInterface):
         dataset_id: Guid,
         dataset_metadata: DatasetMetadataWithoutId,
         unit_data_collection_with_metadata: list[UnitDataset],
-        unit_data_identifiers: list[str]
+        unit_data_identifiers: list[str],
     ):
         dataset_key = (dataset_metadata.survey_id, dataset_metadata.period_id)
         self.datasets[dataset_key] = [
@@ -41,15 +36,10 @@ class FakeDatasetStorageRepository(DatasetStorageRepositoryInterface):
             dataset_metadata,
             unit_data_collection_with_metadata,
             unit_data_identifiers,
-            False  # marked for deletion?
+            False,  # marked for deletion?
         ]
 
-    def delete_dataset_version(
-        self,
-        survey_id: str,
-        period_id: str,
-        version: int
-    ):
+    def delete_dataset_version(self, survey_id: str, period_id: str, version: int):
         dataset_key = (survey_id, period_id)
         datasets = self.datasets.get(dataset_key)
 

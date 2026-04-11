@@ -58,10 +58,7 @@ def build_container() -> Container:
     try:
         profile_fn = PROFILES[profile]
     except KeyError:
-        raise ValueError(
-            f"Unknown profile '{profile}'. "
-            f"Available: {list(PROFILES.keys())}"
-        )
+        raise ValueError(f"Unknown profile '{profile}'. Available: {list(PROFILES.keys())}")
     logger.info(f"Using profile {profile}")
 
     # Apply profile

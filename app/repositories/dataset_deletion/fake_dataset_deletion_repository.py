@@ -9,7 +9,6 @@ class FakeDatasetDeletionRepository(DatasetDeletionRepositoryInterface):
     """
 
     def __init__(self):
-
         # Key = guid, value = status
         self.delete_records = {}
 

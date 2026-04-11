@@ -45,18 +45,11 @@ async def smart_txid(request: Request) -> str:
 
 
 # Basic router configuration
-router_1 = RouterConfig(
-    router, tx_id_getter=smart_txid
-)
+router_1 = RouterConfig(router, tx_id_getter=smart_txid)
 
 
 # Initialize the FastAPI app with the specified settings, routers, and project root.
-app: FastAPI = initialise(
-    settings=Settings,
-    routers=[router_1],
-    middleware=[TimingMiddleware],
-    proj_root=ROOT
-)
+app: FastAPI = initialise(settings=Settings, routers=[router_1], middleware=[TimingMiddleware], proj_root=ROOT)
 
 # Fetch the populated settings
 settings = get_instance()
@@ -68,7 +61,4 @@ app.description = description
 if __name__ == "__main__":
     print(load_startup_banner())
 
-    default_server(
-        app,
-        port=settings.port
-    )
+    default_server(app, port=settings.port)

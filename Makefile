@@ -25,12 +25,6 @@ test:
 	uv run --dev pytest -v --disable-warnings tests/
 
 
-.PHONY: test-parallel
-test-parallel:
-	@echo "Running Local Tests..."
-	uv run --dev pytest -n auto -v --disable-warnings tests/
-
-
 .PHONY: dev
 dev:
 	@echo "Starting development server..."

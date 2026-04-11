@@ -13,8 +13,7 @@ class PublisherProtocol(Protocol):
     which is responsible for publishing schema files.
     """
 
-    def publish_schema(self, file_name: str):
-        ...
+    def publish_schema(self, file_name: str): ...
 
 
 class SchemaService:
@@ -30,7 +29,7 @@ class SchemaService:
         self.bucket_publisher = bucket_publisher
         self.repository_publisher = repository_publisher
 
-    def _publish_single_file(self, file_name: str, publisher: PublisherProtocol): # noqa
+    def _publish_single_file(self, file_name: str, publisher: PublisherProtocol):  # noqa
         """
         Publish a single file using a given publisher
         :param file_name: name of the file to be published
@@ -42,18 +41,14 @@ class SchemaService:
         except Exception as e:
             logger.error(f"Failed to publish schema {file_name}: {e}")
 
-    def _filter_github_files(self, files: list[str]) -> list[str]: # noqa
+    def _filter_github_files(self, files: list[str]) -> list[str]:  # noqa
         """
         Filter a list of file names to publish by the regex
         """
         pattern = re.compile(r"^schemas/[^/]+/[^/]+\.json$")
         return [f for f in files if pattern.match(f)]
 
-    def publish_new_schemas(
-        self,
-        source: str,
-        file_list: list[str]
-    ):
+    def publish_new_schemas(self, source: str, file_list: list[str]):
         """
         Take a list of file names and publish each one using a SchemaPublisher that is identified using publisher
         If any schema fails to publish, it will print an error message but continue processing the remaining files.

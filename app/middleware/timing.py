@@ -27,14 +27,8 @@ class TimingMiddleware(BaseHTTPMiddleware):
 
         response = await call_next(request)
 
-        process_time = round(
-            time.perf_counter() - start_time,
-            4
-        )
+        process_time = round(time.perf_counter() - start_time, 4)
 
-        logger.info(
-            f"{request.method} {path} "
-            f"took {process_time}s"
-        )
+        logger.info(f"{request.method} {path} took {process_time}s")
 
         return response

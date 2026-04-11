@@ -1,2 +1,1 @@
-
 Guid = str

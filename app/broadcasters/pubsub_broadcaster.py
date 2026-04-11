@@ -16,6 +16,7 @@ class PubsubBroadcaster(DatasetBroadcastInterface):
     A broadcaster that will
     broadcast to pubsub
     """
+
     def __init__(
         self,
         settings: PubsubBroadcastSettings,
@@ -24,9 +25,4 @@ class PubsubBroadcaster(DatasetBroadcastInterface):
         self.pubsub_client = PubsubService()
 
     def broadcast(self, dataset_metadata: DatasetMetadata) -> None:
-
-        self.pubsub_client.publish_message(
-            self.settings.publish_dataset_topic_id,
-            json.dumps(dataset_metadata),
-            {}
-        )
+        self.pubsub_client.publish_message(self.settings.publish_dataset_topic_id, json.dumps(dataset_metadata), {})

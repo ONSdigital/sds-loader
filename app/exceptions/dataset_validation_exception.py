@@ -1,5 +1,4 @@
 from app.exceptions import DatasetException
 
 
-class DatasetValidationException(DatasetException):
-    ...
+class DatasetValidationException(DatasetException): ...
