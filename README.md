@@ -76,18 +76,7 @@ Profiles are determined by the `PROFILE` environment variable. This will default
 In order to use Firestore locally, you will need to set up the Firestore emulator. You can do this using Docker. Run the following command to start the Firestore emulator:
 
 ```
-export FIRESTORE_EMULATOR_HOST=localhost:8080 && docker run \
-  --rm \
-  -p=9000:9000 \
-  -p=8080:8080 \
-  -p=4000:4000 \
-  -p=9099:9099 \
-  -p=8085:8085 \
-  -p=5001:5001 \
-  -p=9199:9199 \
-  --env "GCP_PROJECT=${PROJECT_ID}" \
-  --env "ENABLE_UI=true" \
-  spine3/firebase-emulator
+make dev-firestore
 ```
 
 
