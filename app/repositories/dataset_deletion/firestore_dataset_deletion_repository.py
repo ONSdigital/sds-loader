@@ -31,10 +31,7 @@ class FirestoreDatasetDeletionRepository(DatasetDeletionRepositoryInterface):
         self.settings = settings
 
         # Create a firestore client
-        self.client = firestore.Client(
-            project=self.settings.project_id,
-            database=self.settings.firestore_database
-        )
+        self.client = firestore.Client(project=self.settings.project_id, database=self.settings.firestore_database)
 
         # Initialize Firestore collections
         self.mark_deletion_collection = self.client.collection("marked_for_deletion")
@@ -43,28 +40,23 @@ class FirestoreDatasetDeletionRepository(DatasetDeletionRepositoryInterface):
         self.document_references = {}
 
     def mark_record_status(self, guid: Guid, status: DeleteStatus) -> None:
-
         # Look for the document reference in the cache
         doc_id = self.document_references.get(guid)
 
         # If for some reason the guid is not in the cache, query firestore for it
         if not doc_id:
-
             logger.warning(f"Marking record with guid that is not in repository cache: {guid}, looking in firestore...")
 
-            results = (
-                self.mark_deletion_collection
-                .where("dataset_guid", "==", guid)
-                .limit(1)
-                .stream()
-            )
+            results = self.mark_deletion_collection.where("dataset_guid", "==", guid).limit(1).stream()
 
             results_list = list(results)
 
             if len(results_list) > 0:
                 doc_id = results_list[0].id
             else:
-                raise DatasetDeletionMarkException(f"Could not mark record with guid {guid} as a record with this guid could not be found")
+                raise DatasetDeletionMarkException(
+                    f"Could not mark record with guid {guid} as a record with this guid could not be found"
+                )
 
         try:
             # Update the status of this record in firestore
@@ -73,7 +65,6 @@ class FirestoreDatasetDeletionRepository(DatasetDeletionRepositoryInterface):
 
             # If the status is deleted, then mark a timestamp
             if status == DeleteStatus.DELETED:
-
                 utc_dt = datetime.now(timezone.utc)  # UTC time
                 dt = utc_dt.astimezone()  # local time
                 timestamp = dt.strftime("%Y-%m-%dT%H:%M:%SZ")
@@ -82,21 +73,14 @@ class FirestoreDatasetDeletionRepository(DatasetDeletionRepositoryInterface):
             raise DatasetDeletionMarkException from e
 
     def get_dataset_to_delete(self) -> Guid | None:
-
         # First, try to fetch a PROCESSING dataset
-        processing = (
-            self.mark_deletion_collection
-            .where("status", "==", DeleteStatus.PROCESSING)
-            .limit(1)
-            .stream()
-        )
+        processing = self.mark_deletion_collection.where("status", "==", DeleteStatus.PROCESSING).limit(1).stream()
 
         processing_list = list(processing)
 
         # If a result is found that is "Processing"
 
         if len(processing_list) > 0:
-
             # Pick the first record
             doc = processing_list[0]
 
@@ -104,7 +88,7 @@ class FirestoreDatasetDeletionRepository(DatasetDeletionRepositoryInterface):
             dataset = doc.to_dict()
 
             # Extract the fields we need
-            guid = dataset.get('dataset_guid')
+            guid = dataset.get("dataset_guid")
             doc_id = doc.id
 
             # Store in cache
@@ -114,12 +98,7 @@ class FirestoreDatasetDeletionRepository(DatasetDeletionRepositoryInterface):
             return guid
 
         # If no "Processing" results found, fetch a PENDING dataset
-        pending = (
-            self.mark_deletion_collection
-            .where("status", "==", DeleteStatus.PENDING)
-            .limit(1)
-            .stream()
-        )
+        pending = self.mark_deletion_collection.where("status", "==", DeleteStatus.PENDING).limit(1).stream()
 
         pending_list = list(pending)
 
@@ -130,7 +109,7 @@ class FirestoreDatasetDeletionRepository(DatasetDeletionRepositoryInterface):
             dataset = doc.to_dict()
 
             # Extract the fields we need
-            guid = dataset.get('dataset_guid')
+            guid = dataset.get("dataset_guid")
             doc_id = doc.id
 
             # Store in cache

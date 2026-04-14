@@ -1,25 +1,12 @@
-from lagom import Singleton, dependency_definition
+from lagom import Singleton
 from lagom.container import Container
-from sds_common.publishers.gcs_schema_publisher import GcsSchemaPublisher
-from sds_common.publishers.github_schema_publisher import GithubSchemaPublisher
-from sdx_base.services.storage import StorageService
 
-from app.broadcasters.fake_broadcaster import FakeBroadcaster
-from app.broadcasters.pubsub_broadcaster import PubsubBroadcaster
-from app.interfaces.dataset_broadcast_interface import DatasetBroadcastInterface
-from app.interfaces.dataset_deletion_repository_interface import DatasetDeletionRepositoryInterface
-from app.interfaces.dataset_source_repository_interface import DatasetSourceRepositoryInterface
-from app.interfaces.dataset_storage_repository_interface import DatasetStorageRepositoryInterface
-from app.repositories.dataset_deletion.fake_dataset_deletion_repository import FakeDatasetDeletionRepository
-from app.repositories.dataset_deletion.firestore_dataset_deletion_repository import FirestoreDatasetDeletionRepository
-from app.repositories.dataset_source.bucket_dataset_source_repository import BucketDatasetSourceRepository
-from app.repositories.dataset_source.fake_dataset_source_repository import FakeDatasetSourceRepository
-from app.repositories.dataset_storage.fake_dataset_storage_repository import FakeDatasetStorageRepository
-from app.repositories.dataset_storage.firestore_dataset_storage_repository import FirestoreDatasetStorageRepository
+from app import get_logger
+from app.profiles import PROFILES
 from app.services.dataset_service import DatasetService, DatasetSettings
-from app.services.schema_service import SchemaService
-
 from app.settings import Settings, get_instance, QuickSettings
+
+logger = get_logger()
 
 
 class FakePublisher:
@@ -41,101 +28,30 @@ def build_container() -> Container:
     # Create the DI container
     container = Container()
 
-    # Determine environment
-    is_prod = QuickSettings().is_production()
-
     # -----------------------------
     # Core / shared dependencies
     # -----------------------------
     container[Settings] = lambda: get_instance()
 
     # -----------------------------
-    # DatasetSourceRepositoryInterface
+    # Apply profile
     # -----------------------------
+    profile = QuickSettings().get_profile()
 
-    if is_prod:
+    try:
+        profile_fn = PROFILES[profile]
+    except KeyError:
+        raise ValueError(f"Unknown profile '{profile}'. Available: {list(PROFILES.keys())}")
+    logger.info(f"Using profile {profile}")
 
-        @dependency_definition(container)
-        def build_bucket_dataset_source_repository() -> BucketDatasetSourceRepository:
-            return BucketDatasetSourceRepository(
-                bucket_reader=StorageService(),
-                settings=container[Settings]
-            )
-
-        container[DatasetSourceRepositoryInterface] = BucketDatasetSourceRepository
-
-    else:
-        container[DatasetSourceRepositoryInterface] = FakeDatasetSourceRepository
+    # Apply profile
+    profile_fn(container)
 
     # -----------------------------
-    # DatasetStorageRepositoryInterface
+    # Static Services
     # -----------------------------
 
-    if is_prod:
-
-        @dependency_definition(container)
-        def build_firestore_dataset_storage_repository() -> FirestoreDatasetStorageRepository:
-            return FirestoreDatasetStorageRepository(
-                settings=container[Settings]
-            )
-
-        container[DatasetStorageRepositoryInterface] = FirestoreDatasetStorageRepository
-    else:
-        container[DatasetStorageRepositoryInterface] = FakeDatasetStorageRepository
-
-    # -----------------------------
-    # DatasetDeletionRepositoryInterface
-    # -----------------------------
-
-    if is_prod:
-
-        @dependency_definition(container)
-        def build_firestore_dataset_deletion_repository() -> FirestoreDatasetDeletionRepository:
-            return FirestoreDatasetDeletionRepository(
-                settings=container[Settings]
-            )
-
-        container[DatasetDeletionRepositoryInterface] = FirestoreDatasetDeletionRepository
-    else:
-        container[DatasetDeletionRepositoryInterface] = FakeDatasetDeletionRepository
-
-    # -----------------------------
-    # DatasetBroadcastInterface
-    # -----------------------------
-
-    if is_prod:
-
-        @dependency_definition(container)
-        def build_pubsub_broadcaster() -> PubsubBroadcaster:
-            return PubsubBroadcaster(
-                settings=container[Settings]
-            )
-
-        container[DatasetBroadcastInterface] = PubsubBroadcaster
-    else:
-        container[DatasetBroadcastInterface] = FakeBroadcaster
-
-    # Settings
     container[DatasetSettings] = lambda: get_instance()
-
-    # -----------------------------
-    # Services
-    # -----------------------------
-
-    # Schema Service
-
-    if is_prod:
-        container[SchemaService] = SchemaService(
-            bucket_publisher=GcsSchemaPublisher,
-            repository_publisher=GithubSchemaPublisher,
-        )
-    else:
-        container[SchemaService] = SchemaService(
-            bucket_publisher=FakePublisher(name="Fake bucket publisher"),
-            repository_publisher=FakePublisher(name="Fake github publisher"),
-        )
-
-    # Dataset service
     container[DatasetService] = Singleton(DatasetService)
 
     return container

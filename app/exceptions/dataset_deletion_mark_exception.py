@@ -1,5 +1,4 @@
 from app.exceptions import DatasetException
 
 
-class DatasetDeletionMarkException(DatasetException):
-    ...
+class DatasetDeletionMarkException(DatasetException): ...

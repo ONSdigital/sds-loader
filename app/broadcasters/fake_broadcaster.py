@@ -6,6 +6,7 @@ class FakeBroadcaster(DatasetBroadcastInterface):
     """
     A fake broadcaster that doesn't actually broadcast the data
     """
+
     def __init__(self):
         self.broadcasted = []
 

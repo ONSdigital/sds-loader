@@ -1,6 +1,4 @@
-
-class NonCriticalException(Exception):
-    ...
+class NonCriticalException(Exception): ...
 
 
 class DatasetException(Exception):

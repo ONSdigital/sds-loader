@@ -22,16 +22,17 @@ class FirestoreDatasetStorageRepository(DatasetStorageRepositoryInterface):
     that uses firestore
     """
 
-    def __init__(
-        self,
-        settings: FirestoreSettings
-    ):
+    def __init__(self, settings: FirestoreSettings):
         self.settings = settings
 
         # Create a firestore client
         self.client = firestore.Client(
             project=self.settings.project_id,
-            database=self.settings.firestore_database
+            database=self.settings.firestore_database,
+        )
+
+        logger.info(
+            f"Connected to Firestore with project_id: {settings.project_id} and database: {settings.firestore_database}"
         )
 
         # Max size in bytes we can upload in one batch
@@ -41,15 +42,9 @@ class FirestoreDatasetStorageRepository(DatasetStorageRepositoryInterface):
         # Initialize Firestore collections
         self.dataset_collection = self.client.collection("datasets")
 
-    def get_latest_dataset_metadata(
-        self,
-        survey_id: str,
-        period_id: str
-    ) -> DatasetMetadataWithoutId | None:
-
+    def get_latest_dataset_metadata(self, survey_id: str, period_id: str) -> DatasetMetadataWithoutId | None:
         latest_dataset = (
-            self.dataset_collection
-            .where("survey_id", "==", survey_id)
+            self.dataset_collection.where("survey_id", "==", survey_id)
             .where("period_id", "==", period_id)
             .order_by("sds_dataset_version", direction=firestore.Query.DESCENDING)
             .limit(1)
@@ -64,16 +59,9 @@ class FirestoreDatasetStorageRepository(DatasetStorageRepositoryInterface):
 
         return DatasetMetadataWithoutId.model_validate(datasets[0])
 
-    def _get_dataset_metadata(
-        self,
-        survey_id: str,
-        period_id: str,
-        version: int
-    ) -> DatasetMetadata | None:
-
+    def _get_dataset_metadata(self, survey_id: str, period_id: str, version: int) -> DatasetMetadata | None:
         latest_dataset = (
-            self.dataset_collection
-            .where("survey_id", "==", survey_id)
+            self.dataset_collection.where("survey_id", "==", survey_id)
             .where("period_id", "==", period_id)
             .where("version", "==", version)
             .limit(1)
@@ -93,24 +81,25 @@ class FirestoreDatasetStorageRepository(DatasetStorageRepositoryInterface):
         dataset_id: Guid,
         dataset_metadata: DatasetMetadataWithoutId,
         unit_data_collection_with_metadata: list[UnitDataset],
-        unit_data_identifiers: list[str]
+        unit_data_identifiers: list[str],
     ):
-
         # Write to firebase in batches or not depends on the settings
 
         if self.settings.should_batch:
+            logger.info("Writing to Firestore in BATCH mode")
             self._store_dataset_with_batching(
                 dataset_id=dataset_id,
                 dataset_metadata=dataset_metadata,
                 unit_data_collection_with_metadata=unit_data_collection_with_metadata,
-                unit_data_identifiers=unit_data_identifiers
+                unit_data_identifiers=unit_data_identifiers,
             )
         else:
+            logger.info("Writing to Firestore in NORMAL mode")
             self._store_dataset_without_batching(
                 dataset_id=dataset_id,
                 dataset_metadata=dataset_metadata,
                 unit_data_collection_with_metadata=unit_data_collection_with_metadata,
-                unit_data_identifiers=unit_data_identifiers
+                unit_data_identifiers=unit_data_identifiers,
             )
 
     def _store_dataset_without_batching(
@@ -118,7 +107,7 @@ class FirestoreDatasetStorageRepository(DatasetStorageRepositoryInterface):
         dataset_id: Guid,
         dataset_metadata: DatasetMetadataWithoutId,
         unit_data_collection_with_metadata: list[UnitDataset],
-        unit_data_identifiers: list[str]
+        unit_data_identifiers: list[str],
     ):
         """
         Write the data to firestore without batching
@@ -133,7 +122,7 @@ class FirestoreDatasetStorageRepository(DatasetStorageRepositoryInterface):
         units_collection = new_dataset_document.collection("units")
 
         # Go through unit data
-        for (unit_data, unit_identifier) in zip(unit_data_collection_with_metadata, unit_data_identifiers):
+        for unit_data, unit_identifier in zip(unit_data_collection_with_metadata, unit_data_identifiers):
             # Create and save the unit data as a new sub document
             units_collection.document(unit_identifier).set(unit_data.model_dump())
 
@@ -142,7 +131,7 @@ class FirestoreDatasetStorageRepository(DatasetStorageRepositoryInterface):
         dataset_id: Guid,
         dataset_metadata: DatasetMetadataWithoutId,
         unit_data_collection_with_metadata: list[UnitDataset],
-        unit_data_identifiers: list[str]
+        unit_data_identifiers: list[str],
     ):
         """
         Use batches to write the data to firestore
@@ -163,7 +152,7 @@ class FirestoreDatasetStorageRepository(DatasetStorageRepositoryInterface):
         batch_num_records = 0
 
         # Go through unit data
-        for (unit_data, unit_identifier) in zip(unit_data_collection_with_metadata, unit_data_identifiers):
+        for unit_data, unit_identifier in zip(unit_data_collection_with_metadata, unit_data_identifiers):
             """
             Add this unit to the current batch if ...
 
@@ -172,10 +161,12 @@ class FirestoreDatasetStorageRepository(DatasetStorageRepositoryInterface):
             """
 
             # Work out the size of this unit
-            unit_size = len(unit_data.model_dump().encode('utf-8'))
+            unit_size = len(unit_data.model_dump_json().encode("utf-8"))
 
             # Work out if the current batch is too big already
-            if (batch_size_bytes + unit_size >= self.MAX_BATCH_SIZE_BYTES) or (batch_num_records + 1 >= self.MAX_NUMBER_OF_WRITES_PER_BATCH):
+            if (batch_size_bytes + unit_size >= self.MAX_BATCH_SIZE_BYTES) or (
+                batch_num_records + 1 >= self.MAX_NUMBER_OF_WRITES_PER_BATCH
+            ):
                 # Commit the current batch
                 batch.commit()
 
@@ -194,13 +185,7 @@ class FirestoreDatasetStorageRepository(DatasetStorageRepositoryInterface):
         if batch_size_bytes > 0:
             batch.commit()
 
-    def delete_dataset_version(
-        self,
-        survey_id: str,
-        period_id: str,
-        version: int
-    ):
-
+    def delete_dataset_version(self, survey_id: str, period_id: str, version: int):
         dataset_metadata = self._get_dataset_metadata(survey_id, period_id, version)
 
         if not dataset_metadata:
@@ -211,7 +196,6 @@ class FirestoreDatasetStorageRepository(DatasetStorageRepositoryInterface):
         self.delete_dataset_by_guid(dataset_metadata.dataset_id)
 
     def delete_dataset_by_guid(self, guid: Guid):
-
         # Get all the collections for this dataset
         collections = self.dataset_collection.document(guid).collections()
 

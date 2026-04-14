@@ -1,4 +1,3 @@
-
 from app.factories.dataset_factories import RawDatasetFactory
 from app.interfaces.dataset_source_repository_interface import DatasetSourceRepositoryInterface
 from app.models.dataset import RawDataset
@@ -11,12 +10,8 @@ class FakeDatasetSourceRepository(DatasetSourceRepositoryInterface):
     """
 
     def __init__(self):
-
         # Store fake datasets
-        self.datasets = {
-            f"dataset_{x}.json": RawDatasetFactory.build()
-            for x in range(3)
-        }
+        self.datasets = {f"dataset_{x}.json": RawDatasetFactory.build() for x in range(3)}
 
     def get_oldest_filename(self) -> str | None:
         if not self.datasets:
@@ -26,7 +21,6 @@ class FakeDatasetSourceRepository(DatasetSourceRepositoryInterface):
         return next(iter(self.datasets.keys()))
 
     def get_raw_data(self, file_name: str) -> RawDataset | None:
-
         if file_name in self.datasets:
             return self.datasets[file_name]
         return None

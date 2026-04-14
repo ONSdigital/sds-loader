@@ -47,12 +47,9 @@ async def version():
 async def publish_schemas(
     request: Request,
     source: Annotated[
-        Literal["github", "bucket"],
-        Query(
-            description="The source of the files specified in this request."
-        )
+        Literal["github", "bucket"], Query(description="The source of the files specified in this request.")
     ] = "github",
-    schema_service: SchemaService = DEPS.depends(SchemaService)
+    schema_service: SchemaService = DEPS.depends(SchemaService),
 ):
     """
     This endpoint handles a publishing schemas from a given
@@ -70,12 +67,8 @@ async def publish_schemas(
 
     try:
         # Publish the new schemas
-        schema_service.publish_new_schemas(
-            source=source,
-            file_list=get_data(message).split("\n")
-        )
+        schema_service.publish_new_schemas(source=source, file_list=get_data(message).split("\n"))
     except NonCriticalException as e:
-
         # Return a status 200 (non-critical exception)
         return JSONResponse(
             status_code=200,
@@ -83,7 +76,6 @@ async def publish_schemas(
         )
 
     except (SchemaException, Exception) as e:
-
         return JSONResponse(
             status_code=500,
             content={"success": False, "message": "Exception publishing schema: " + str(e)},
@@ -96,9 +88,7 @@ async def publish_schemas(
 
 
 @router.get("/events/dataset/create")
-async def create_dataset(
-    dataset_service: DatasetService = DEPS.depends(DatasetService)
-):
+async def create_dataset(dataset_service: DatasetService = DEPS.depends(DatasetService)):
     """
     This endpoint handles creating a dataset
 
@@ -112,7 +102,6 @@ async def create_dataset(
     try:
         dataset_service.create_dataset()
     except NonCriticalException as e:
-
         # Return a status 200 (non-critical exception)
         return JSONResponse(
             status_code=200,
@@ -120,6 +109,7 @@ async def create_dataset(
         )
 
     except (DatasetException, Exception) as e:
+        logger.exception("Exception creating dataset")
 
         return JSONResponse(
             status_code=500,
@@ -133,9 +123,7 @@ async def create_dataset(
 
 
 @router.get("/events/dataset/delete")
-async def delete_dataset(
-    dataset_service: DatasetService = DEPS.depends(DatasetService)
-):
+async def delete_dataset(dataset_service: DatasetService = DEPS.depends(DatasetService)):
     """
     This endpoint deletes a dataset
 
@@ -149,7 +137,6 @@ async def delete_dataset(
     try:
         dataset_service.delete_dataset()
     except NonCriticalException as e:
-
         # Return a status 200 (non critical exception)
         return JSONResponse(
             status_code=200,
@@ -157,7 +144,6 @@ async def delete_dataset(
         )
 
     except (DatasetException, Exception) as e:
-
         return JSONResponse(
             status_code=500,
             content={"success": False, "message": "Exception deleting dataset: " + str(e)},

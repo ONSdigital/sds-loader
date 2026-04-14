@@ -1,6 +1,4 @@
-
 from app.exceptions import SchemaException
 
 
-class SchemaSourceInvalidException(SchemaException):
-    ...
+class SchemaSourceInvalidException(SchemaException): ...

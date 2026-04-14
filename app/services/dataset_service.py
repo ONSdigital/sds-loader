@@ -42,7 +42,7 @@ class DatasetService:
         dataset_storage_repo: DatasetStorageRepositoryInterface,
         dataset_deletion_repo: DatasetDeletionRepositoryInterface,
         broadcaster: DatasetBroadcastInterface,
-        settings: DatasetSettings
+        settings: DatasetSettings,
     ):
         self.dataset_source_repo = dataset_source_repo
         self.dataset_storage_repo = dataset_storage_repo
@@ -160,11 +160,13 @@ class DatasetService:
         # Determine next dataset version based on the latest dataset version
         if current_dataset:
             logger.info(
-                f"Found previous dataset version: {current_dataset.sds_dataset_version} for survey {raw_dataset.survey_id}, period {raw_dataset.period_id}, incrementing version for new dataset")
+                f"Found previous dataset version: {current_dataset.sds_dataset_version} for survey {raw_dataset.survey_id}, period {raw_dataset.period_id}, incrementing version for new dataset"
+            )
             new_version = current_dataset.sds_dataset_version + 1
         else:
             logger.info(
-                f"Could not find a previous dataset version for survey {raw_dataset.survey_id}, period {raw_dataset.period_id}, setting version to 1")
+                f"Could not find a previous dataset version for survey {raw_dataset.survey_id}, period {raw_dataset.period_id}, setting version to 1"
+            )
             new_version = 1
 
         # Create a new dataset_metadata object to store
@@ -194,14 +196,11 @@ class DatasetService:
                 form_types=new_dataset_metadata.form_types,
                 data=item.unit_data,
             )
-
             for item in raw_dataset.data
         ]
 
         # Fetch a list of the identifiers for the unit data in the dataset
-        unit_data_identifiers = [
-            item.identifier for item in raw_dataset.data
-        ]
+        unit_data_identifiers = [item.identifier for item in raw_dataset.data]
 
         # Write the new dataset to storage (firestore)
 
@@ -215,7 +214,6 @@ class DatasetService:
                 unit_data_identifiers=unit_data_identifiers,
             )
         except Exception as e:
-
             logger.error(f"Failed to save new dataset to storage repository, cleaning up: {e}")
             # If an error occurs, ensure this is fully deleted
             self.dataset_storage_repo.delete_dataset_by_guid(dataset_id)
@@ -225,10 +223,7 @@ class DatasetService:
         logger.info(f"Dataset saved to storage successfully: {dataset_id}")
 
         # Create a DatasetMetadata object
-        dataset_metadata = DatasetMetadata(
-            dataset_id=dataset_id,
-            **new_dataset_metadata.model_dump()
-        )
+        dataset_metadata = DatasetMetadata(dataset_id=dataset_id, **new_dataset_metadata.model_dump())
 
         # Broadcast the dataset has been created (pubsub)
         self.broadcaster.broadcast(dataset_metadata)
@@ -248,13 +243,7 @@ class DatasetService:
 
             logger.info(f"Dataset creation process completed: {dataset_id}")
 
-    def _cleanup(
-        self,
-        survey_id: str,
-        period_id: str,
-        new_version: int,
-        older_version: int
-    ):
+    def _cleanup(self, survey_id: str, period_id: str, new_version: int, older_version: int):
         """
         Determine if the other versions of the dataset should be deleted
 
@@ -268,17 +257,16 @@ class DatasetService:
 
         # Delete the previous version if the retention flag is false and this is not v1
         if not self.settings.retain_old_datasets and new_version > 1:
-
             logger.info("Deleting previous version of dataset...")
 
             # Delete the old version
             self.dataset_storage_repo.delete_dataset_version(
-                survey_id=survey_id,
-                period_id=period_id,
-                version=older_version
+                survey_id=survey_id, period_id=period_id, version=older_version
             )
 
-            logger.info(f"Older Dataset deleted successfully: survey: {survey_id}, period: {period_id}, version: {older_version}")
+            logger.info(
+                f"Older Dataset deleted successfully: survey: {survey_id}, period: {period_id}, version: {older_version}"
+            )
         else:
             logger.info("Nothing to cleanup")
 
@@ -304,9 +292,7 @@ class DatasetService:
 
         if not dataset_guid_to_delete:
             logger.info("No datasets marked for deletion (skipping process)")
-            raise DatasetDeletionEmptyException(
-                "No datasets marked for deletion in the storage repository"
-            )
+            raise DatasetDeletionEmptyException("No datasets marked for deletion in the storage repository")
 
         logger.info(f"Selected dataset to delete: {dataset_guid_to_delete}")
 
@@ -321,7 +307,6 @@ class DatasetService:
             self.dataset_storage_repo.delete_dataset_by_guid(dataset_guid_to_delete)
 
         except (DatasetDeletionException, Exception) as e:
-
             logger.error("Error deleting dataset, updating delete record status to ERROR")
 
             # If an error occurred, update the status for the delete record

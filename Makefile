@@ -2,11 +2,6 @@ SHELL := bash
 .ONESHELL:
 
 
-PHONY: install
-install: ## Install dependencies
-	uv sync
-
-
 .PHONY: lint
 lint:
 	@echo "Running Ruff linter..."
@@ -25,10 +20,9 @@ test:
 	uv run --dev pytest -v --disable-warnings tests/
 
 
-.PHONY: test-parallel
-test-parallel:
-	@echo "Running Local Tests..."
-	uv run --dev pytest -n auto -v --disable-warnings tests/
+.PHONY: install
+install: ## Install dependencies
+	uv sync
 
 
 .PHONY: dev
