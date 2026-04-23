@@ -1,0 +1,40 @@
+steps:
+  - name: gcr.io/cloud-builders/docker
+    id: "docker build and push"
+    entrypoint: sh
+    args:
+      - "-c"
+      - |
+        docker build --cache-from "europe-west2-docker.pkg.dev/${PROJECT_ID}/sds-loader/sds-loader:latest" -t "europe-west2-docker.pkg.dev/${PROJECT_ID}/sds-loader/sds-loader:${SHORT_SHA}" -t "europe-west2-docker.pkg.dev/${PROJECT_ID}/sds-loader/sds-loader:latest" .
+        docker push "europe-west2-docker.pkg.dev/${PROJECT_ID}/sds-loader/sds-loader:${SHORT_SHA}"
+        docker push "europe-west2-docker.pkg.dev/${PROJECT_ID}/sds-loader/sds-loader:latest"
+
+  - name: "gcr.io/google.com/cloudsdktool/cloud-sdk"
+    id: "Run container"
+    entrypoint: gcloud
+    args:
+      [
+        "run",
+        "deploy",
+        "sds",
+        "--no-invoker-iam-check",
+        "--image",
+        "europe-west2-docker.pkg.dev/${PROJECT_ID}/sds-loader/sds-loader:${SHORT_SHA}",
+        "--region",
+        "europe-west2",
+        "--allow-unauthenticated",
+        "--ingress",
+        "internal-and-cloud-load-balancing",
+        "--update-env-vars",
+        "DATASET_BUCKET_NAME=ons-sds-angus-sds-europe-west2-dataset",
+        "FIRESTORE_DATABASE=ons-sds-angus-sds",
+        "PUBLISH_DATASET_TOPIC_ID=projects/ons-sds-angus/topics/publish-dataset",
+        "--cpu-boost",
+        "--session-affinity",
+        "--min-instances",
+        "1",
+        "--max-instances",
+        "100",
+        "--concurrency",
+        "1",
+      ]
