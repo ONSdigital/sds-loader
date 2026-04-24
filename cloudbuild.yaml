@@ -25,7 +25,7 @@ steps:
         "--allow-unauthenticated",
         "--ingress",
         "internal-and-cloud-load-balancing",
-        "--env-vars",
+        "--set-env-vars",
         "DATASET_BUCKET_NAME=ons-sds-angus-sds-europe-west2-dataset",
         "FIRESTORE_DATABASE=ons-sds-angus-sds",
         "PUBLISH_DATASET_TOPIC_ID=projects/ons-sds-angus/topics/publish-dataset",
