@@ -16,7 +16,7 @@ steps:
       [
         "run",
         "deploy",
-        "sds",
+        "sds-loader",
         "--no-invoker-iam-check",
         "--image",
         "europe-west2-docker.pkg.dev/${PROJECT_ID}/sds-loader/sds-loader:${SHORT_SHA}",
