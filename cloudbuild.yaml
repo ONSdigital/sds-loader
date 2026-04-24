@@ -38,3 +38,6 @@ steps:
         "--concurrency",
         "1",
       ]
+
+options:
+  logging: CLOUD_LOGGING_ONLY
