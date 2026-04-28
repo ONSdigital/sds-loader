@@ -57,7 +57,10 @@ class FirestoreDatasetStorageRepository(DatasetStorageRepositoryInterface):
         if len(datasets) == 0:
             return None
 
-        return DatasetMetadataWithoutId.model_validate(datasets[0])
+        # Parse into Pydantic Model
+        return DatasetMetadataWithoutId.model_validate(
+            datasets[0].to_dict()
+        )
 
     def _get_dataset_metadata(self, survey_id: str, period_id: str, version: int) -> DatasetMetadata | None:
         latest_dataset = (
@@ -74,7 +77,9 @@ class FirestoreDatasetStorageRepository(DatasetStorageRepositoryInterface):
         if len(datasets) == 0:
             return None
 
-        return DatasetMetadata.model_validate(datasets[0])
+        return DatasetMetadata.model_validate(
+            datasets[0].to_dict()
+        )
 
     def store_dataset(
         self,
