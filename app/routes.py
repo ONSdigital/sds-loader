@@ -137,7 +137,7 @@ async def delete_dataset(dataset_service: DatasetService = DEPS.depends(DatasetS
     try:
         dataset_service.delete_dataset()
     except NonCriticalException as e:
-        # Return a status 200 (non critical exception)
+        # Return a status 200 (non-critical exception)
         return JSONResponse(
             status_code=200,
             content={"success": True, "message": str(e)},

@@ -4,6 +4,7 @@ from typing import Protocol
 
 from app import get_logger
 from app.enums.delete_status import DeleteStatus
+from app.exceptions.dataset_broadcast_exception import DatasetBroadcastException
 from app.exceptions.dataset_deletion_empty_exception import DatasetDeletionEmptyException
 from app.exceptions.dataset_deletion_exception import DatasetDeletionException
 from app.exceptions.dataset_not_found_exception import DatasetNotFoundException
@@ -225,8 +226,12 @@ class DatasetService:
         # Create a DatasetMetadata object
         dataset_metadata = DatasetMetadata(dataset_id=dataset_id, **new_dataset_metadata.model_dump())
 
-        # Broadcast the dataset has been created (pubsub)
-        self.broadcaster.broadcast(dataset_metadata)
+        try:
+            # Broadcast the dataset has been created (pubsub)
+            self.broadcaster.broadcast(dataset_metadata)
+        except Exception as e:
+            logger.error("Failed to broadcast new dataset")
+            raise DatasetBroadcastException from e
 
         logger.info(f"Cleaning up for: {dataset_id}")
 
