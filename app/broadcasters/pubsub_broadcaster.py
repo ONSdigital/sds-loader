@@ -1,4 +1,3 @@
-import json
 from typing import Protocol
 
 from sdx_base.services.pubsub import PubsubService
