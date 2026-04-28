@@ -14,10 +14,6 @@ dependencies = [
     "requests>=2.32.3",
 ]
 
-[[tool.uv.index]]
-name = "sds-repo"
-url = "https://europe-west2-python.pkg.dev/ons-sds-ci/sds-python-packages/simple/"
-
 [dependency-groups]
 dev = [
     "pytest>=8.3.5",
@@ -34,17 +30,21 @@ version-check = [
     "tomlkit>=0.13.3",
 ]
 
-[tool.uv.sources]
-sdx-base = { index = "sdx-repo" }
+[[tool.uv.index]]
+name = "sds-repo"
+url = "https://europe-west2-python.pkg.dev/ons-sds-ci/sds-python-packages/simple/"
 
 [[tool.uv.index]]
 name = "sdx-repo"
 url = "https://europe-west2-python.pkg.dev/ons-sdx-ci/sdx-python-packages/simple/"
 
+[tool.uv.sources]
+sdx-base = { index = "sdx-repo" }
+sds-common = { index = "sds-repo" }
 
 [tool.ruff]
 line-length = 121
-exclude = ["lib", "__pycache__", ".venv", ]
+exclude = ["lib", "__pycache__", ".venv"]
 
 [tool.ruff.lint]
 extend-select = ["E303", "W391", "W292", "E302"]
