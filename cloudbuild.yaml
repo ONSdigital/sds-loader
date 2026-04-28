@@ -30,7 +30,7 @@ steps:
         "--set-env-vars",
         "FIRESTORE_DATABASE=ons-sds-angus-sds",
         "--set-env-vars",
-        "PUBLISH_DATASET_TOPIC_ID=projects/ons-sds-angus/topics/publish-dataset",
+        "PUBLISH_DATASET_TOPIC_ID=projects/ons-sds-angus/topics/ons-sds-publish-dataset",
         "--set-env-vars",
         "PROJECT_ID=${PROJECT_ID}",
         "--cpu-boost",
