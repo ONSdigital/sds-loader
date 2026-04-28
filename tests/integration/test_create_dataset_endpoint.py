@@ -167,5 +167,72 @@ class TestCreateDatasetEndpoint:
                 "/events/dataset/create",
             )
 
-            # Assert a 200
+            # Assert a 500
+            assert response.status_code == 500
+
+    def test_create_dataset_returns_500_if_the_broadcast_fails(
+        self,
+        test_app: FastAPI,
+        mock_dataset_source_repo,
+        mock_dataset_storage_repo,
+        mock_dataset_deletion_repo,
+        mock_broadcaster: MockBroadcaster,
+        raw_dataset_factory: RawDatasetFactory,
+
+    ):
+        """
+        Test that when the broadcast fails, a 500 error code is returned.
+        """
+
+        # Mock the broadcaster to raise an exception
+        mock_broadcaster.broadcast = lambda: Exception("Error broadcasting")
+
+        # Use predictable survey_id and period_id
+        survey_id = "123"
+        period_id = "456"
+
+        # ------------------------
+        # Source repository mocks
+        # ------------------------
+
+        # Mock the source repo to return a valid JSON filename
+        mock_dataset_source_repo.get_oldest_filename.return_value = "valid-filename.json"
+
+        # Mock the source repo to return valid RawDataset
+        mock_dataset_source_repo.get_raw_data.return_value = raw_dataset_factory.build(
+            survey_id=survey_id,
+            period_id=period_id,
+        )
+
+        # ------------------------
+        # Storage repository mocks
+        # ------------------------
+
+        # Mock the current storage repository (firestore) to force version 1
+        mock_dataset_storage_repo.get_latest_dataset_metadata.return_value = None
+
+        with DEPS.override_for_test() as test_container:
+            # For this test we set autodelete to True
+            class MockSettings:
+                autodelete_dataset: bool = True
+                retain_old_datasets = False
+
+            # Override the DatasetService dependencies with our mocks
+            test_container[DatasetService] = DatasetService(
+                dataset_source_repo=mock_dataset_source_repo,
+                dataset_storage_repo=mock_dataset_storage_repo,
+                dataset_deletion_repo=mock_dataset_deletion_repo,
+                broadcaster=mock_broadcaster,
+                settings=MockSettings(),
+            )
+
+            # Create a TestClient instance
+            client = TestClient(test_app)
+
+            # Make the get request to the endpoint
+            response = client.get(
+                "/events/dataset/create",
+            )
+
+            # Assert a 500
             assert response.status_code == 500
