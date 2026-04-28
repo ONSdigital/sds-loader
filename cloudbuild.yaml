@@ -41,6 +41,10 @@ steps:
         "100",
         "--concurrency",
         "1",
+        "--cpu",
+        "4",
+        "--memory",
+        "16Gi",
       ]
 
 options:
