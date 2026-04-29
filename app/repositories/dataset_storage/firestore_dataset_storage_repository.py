@@ -103,25 +103,44 @@ class FirestoreDatasetStorageRepository(DatasetStorageRepositoryInterface):
         unit_data_collection_with_metadata: list[UnitDataset],
         unit_data_identifiers: list[str],
     ):
+        # Create dataset document
         new_dataset_document = self.dataset_collection.document(dataset_id)
 
-        # Store metadata
-        new_dataset_document.set(dataset_metadata.model_dump(), merge=True)
+        # Store metadata first
+        new_dataset_document.set(
+            dataset_metadata.model_dump(),
+            merge=False,
+        )
 
         units_collection = new_dataset_document.collection("units")
 
-        with self.client.bulk_writer() as bulk_writer:
-            for unit_data, unit_identifier in zip(
-                unit_data_collection_with_metadata,
+        # Create BulkWriter
+        bulk_writer = self.client.bulk_writer()
+
+        try:
+            # Pre-dump models
+            dumped_units = [
+                unit.model_dump()
+                for unit in unit_data_collection_with_metadata
+            ]
+
+            for data, unit_identifier in zip(
+                dumped_units,
                 unit_data_identifiers,
             ):
                 doc_ref = units_collection.document(unit_identifier)
 
                 bulk_writer.set(
                     doc_ref,
-                    unit_data.model_dump(),
+                    data,
                     merge=False,
                 )
+
+            bulk_writer.flush()
+
+        finally:
+            # Ensures all writes complete
+            bulk_writer.close()
 
     def delete_dataset_version(self, survey_id: str, period_id: str, version: int):
         dataset_metadata = self._get_dataset_metadata(survey_id, period_id, version)
