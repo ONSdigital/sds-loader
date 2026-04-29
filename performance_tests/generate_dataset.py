@@ -151,11 +151,11 @@ class JsonGenerator:
 if __name__ == "__main__":
     # Instantiate JsonGenerator with desired parameters
     survey_id = "test_survey_id"
-    file_name = "../dummy_dataset.json"
-    dataset_entries = 500000  # Number of entries of unit_data you want in your dataset
+    file_name = "dummy_dataset_20k_encrypt.json"
+    dataset_entries = 20000  # Number of entries of unit_data you want in your dataset
     fixed_identifiers = []  # List of fixed unit_data identifiers you want to use
     write_unit_data_from_file = True  # Set to True if you want to write unit_data from a file
-    write_unit_data_file = "BRES_20_unit_data_dummy_encrypted.txt"  # Path to file of unit_data to write
+    write_unit_data_file = "performance_tests/BRES_20_unit_data_dummy_encrypted.txt"  # Path to file of unit_data to write
 
     json_generator = JsonGenerator(
         survey_id,
