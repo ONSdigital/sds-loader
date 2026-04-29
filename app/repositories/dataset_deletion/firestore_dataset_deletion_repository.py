@@ -64,7 +64,7 @@ class FirestoreDatasetDeletionRepository(DatasetDeletionRepositoryInterface):
             document_reference.update({"status": status.value})
 
             # If the status is deleted, then mark a timestamp
-            if status == DeleteStatus.DELETED:
+            if status == "deleted":
                 utc_dt = datetime.now(timezone.utc)  # UTC time
                 dt = utc_dt.astimezone()  # local time
                 timestamp = dt.strftime("%Y-%m-%dT%H:%M:%SZ")
@@ -74,7 +74,7 @@ class FirestoreDatasetDeletionRepository(DatasetDeletionRepositoryInterface):
 
     def get_dataset_to_delete(self) -> Guid | None:
         # First, try to fetch a PROCESSING dataset
-        processing = self.mark_deletion_collection.where("status", "==", DeleteStatus.PROCESSING).limit(1).stream()
+        processing = self.mark_deletion_collection.where("status", "==", "processing").limit(1).stream()
 
         processing_list = list(processing)
 
@@ -98,7 +98,7 @@ class FirestoreDatasetDeletionRepository(DatasetDeletionRepositoryInterface):
             return guid
 
         # If no "Processing" results found, fetch a PENDING dataset
-        pending = self.mark_deletion_collection.where("status", "==", DeleteStatus.PENDING).limit(1).stream()
+        pending = self.mark_deletion_collection.where("status", "==", "pending").limit(1).stream()
 
         pending_list = list(pending)
 
