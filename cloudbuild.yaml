@@ -44,9 +44,9 @@ steps:
         "--concurrency",
         "1",
         "--cpu",
-        "1",
+        "4",
         "--memory",
-        "2Gi",
+        "16Gi",
         "--timeout",
         "3600s",
       ]
