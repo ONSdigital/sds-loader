@@ -34,7 +34,7 @@ class Settings(AppSettings):
 
     project_id: str = "ons-sds-sandbox"
     autodelete_dataset: bool = True
-    retain_old_dataset: bool = True
+    retain_old_datasets: bool = True
     should_batch: bool = True
     dataset_bucket_name: str
     firestore_database: str
