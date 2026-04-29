@@ -1,6 +1,7 @@
 from typing import Protocol
 
 from google.cloud import firestore
+from google.cloud.firestore_v1.bulk_writer import BulkWriterOptions
 
 from app import get_logger
 from app.interfaces.dataset_storage_repository_interface import DatasetStorageRepositoryInterface
@@ -103,43 +104,36 @@ class FirestoreDatasetStorageRepository(DatasetStorageRepositoryInterface):
         unit_data_collection_with_metadata: list[UnitDataset],
         unit_data_identifiers: list[str],
     ):
-        # Create dataset document
         new_dataset_document = self.dataset_collection.document(dataset_id)
-
-        # Store metadata first
-        new_dataset_document.set(
-            dataset_metadata.model_dump(),
-            merge=False,
-        )
-
         units_collection = new_dataset_document.collection("units")
 
-        # Create BulkWriter
-        bulk_writer = self.client.bulk_writer()
+        bulk_writer = self.client.bulk_writer(
+            options=BulkWriterOptions(
+                max_ops_per_second=2500
+            )
+        )
 
         try:
-            # Pre-dump models
-            dumped_units = [
-                unit.model_dump()
-                for unit in unit_data_collection_with_metadata
-            ]
+            # Include metadata in bulk
+            bulk_writer.set(
+                new_dataset_document,
+                dataset_metadata.model_dump(),
+                merge=False,
+            )
 
-            for data, unit_identifier in zip(
-                dumped_units,
+            for unit, unit_identifier in zip(
+                unit_data_collection_with_metadata,
                 unit_data_identifiers,
             ):
-                doc_ref = units_collection.document(unit_identifier)
-
                 bulk_writer.set(
-                    doc_ref,
-                    data,
+                    units_collection.document(unit_identifier),
+                    unit.model_dump(),
                     merge=False,
                 )
 
             bulk_writer.flush()
 
         finally:
-            # Ensures all writes complete
             bulk_writer.close()
 
     def delete_dataset_version(self, survey_id: str, period_id: str, version: int):
