@@ -74,7 +74,7 @@ class FirestoreDatasetDeletionRepository(DatasetDeletionRepositoryInterface):
 
     def get_dataset_to_delete(self) -> Guid | None:
         # First, try to fetch a PROCESSING dataset
-        processing = self.mark_deletion_collection.where("status", "==", DeleteStatus.PROCESSING.value).limit(1).stream()
+        processing = self.mark_deletion_collection.where("status", "==", DeleteStatus.PROCESSING).limit(1).stream()
 
         processing_list = list(processing)
 
@@ -98,7 +98,7 @@ class FirestoreDatasetDeletionRepository(DatasetDeletionRepositoryInterface):
             return guid
 
         # If no "Processing" results found, fetch a PENDING dataset
-        pending = self.mark_deletion_collection.where("status", "==", DeleteStatus.PENDING.value).limit(1).stream()
+        pending = self.mark_deletion_collection.where("status", "==", DeleteStatus.PENDING).limit(1).stream()
 
         pending_list = list(pending)
 

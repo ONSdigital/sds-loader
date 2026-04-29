@@ -1,0 +1,20 @@
+services:
+  sds-loader:
+    build:
+      context: .
+      dockerfile: Dockerfile
+
+    container_name: sds-loader
+
+    ports:
+      - "5006:5006"
+
+    environment:
+      PROJECT_ID: ons-sdx-bob
+      PROFILE: dev
+      DATASET_BUCKET_NAME: ons-sdx-bob-datasets
+      FIRESTORE_DATABASE: test
+      PUBLISH_DATASET_TOPIC_ID: projects/ons-sds-sandbox/topics/publish-dataset
+      PORT: 5006
+
+    restart: unless-stopped
