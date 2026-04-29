@@ -33,6 +33,8 @@ steps:
         "PUBLISH_DATASET_TOPIC_ID=projects/ons-sds-angus/topics/ons-sds-publish-dataset",
         "--set-env-vars",
         "PROJECT_ID=${PROJECT_ID}",
+        "--set-env-vars",
+        "RETAIN_OLD_DATASETS=true",
         "--cpu-boost",
         "--session-affinity",
         "--min-instances",
