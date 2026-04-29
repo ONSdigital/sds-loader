@@ -206,7 +206,7 @@ class FirestoreDatasetStorageRepository(DatasetStorageRepositoryInterface):
 
         # Delete each collection
         for collection in collections:
-            collection.recursive_delete()
+            self.client.recursive_delete(collection)
 
         # Delete the dataset itself
         self.dataset_collection.document(guid).delete()
