@@ -47,6 +47,8 @@ steps:
         "4",
         "--memory",
         "16Gi",
+        "--timeout",
+        "3600s",
       ]
 
 options:
