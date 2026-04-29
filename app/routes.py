@@ -144,6 +144,7 @@ async def delete_dataset(dataset_service: DatasetService = DEPS.depends(DatasetS
         )
 
     except (DatasetException, Exception) as e:
+        logger.exception("Exception deleting dataset")
         return JSONResponse(
             status_code=500,
             content={"success": False, "message": "Exception deleting dataset: " + str(e)},
