@@ -35,10 +35,6 @@ class FirestoreDatasetStorageRepository(DatasetStorageRepositoryInterface):
             f"Connected to Firestore with project_id: {settings.project_id} and database: {settings.firestore_database}"
         )
 
-        # Max size in bytes we can upload in one batch
-        self.MAX_BATCH_SIZE_BYTES = 9 * 1024 * 1024
-        self.MAX_NUMBER_OF_WRITES_PER_BATCH = 500
-
         # Initialize Firestore collections
         self.dataset_collection = self.client.collection("datasets")
 
