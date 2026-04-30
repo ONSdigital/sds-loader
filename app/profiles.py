@@ -91,8 +91,8 @@ def production(container: Container):
     container[DatasetDeletionRepositoryInterface] = FirestoreDatasetDeletionRepository
     container[DatasetBroadcastInterface] = PubsubBroadcaster
     container[SchemaService] = SchemaService(
-        bucket_publisher=GcsSchemaPublisher,
-        repository_publisher=GithubSchemaPublisher,
+        bucket_publisher=GcsSchemaPublisher(),
+        repository_publisher=GithubSchemaPublisher(),
     )
 
 
