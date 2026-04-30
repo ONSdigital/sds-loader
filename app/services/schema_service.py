@@ -36,7 +36,7 @@ class SchemaService:
         :param publisher: publisher - the publishing protocol to use to publish the file
         """
         try:
-            publisher.publish_schema(file_name)
+            publisher.publish_schema(file_name=file_name)
             logger.info(f"Successfully published schema: {file_name}")
         except Exception as e:
             logger.error(f"Failed to publish schema {file_name}: {e}")

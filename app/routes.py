@@ -60,6 +60,7 @@ async def publish_schemas(
         # Fetch the message from pubsub
         message: Message = await get_message(request)
     except Exception as e:
+        logger.exception("Exception fetching message from request")
         return JSONResponse(
             status_code=500,
             content={"success": False, "message": "Invalid message body received: " + str(e)},
@@ -76,6 +77,8 @@ async def publish_schemas(
         )
 
     except (SchemaException, Exception) as e:
+        logger.exception("Exception publishing schemas")
+
         return JSONResponse(
             status_code=500,
             content={"success": False, "message": "Exception publishing schema: " + str(e)},
