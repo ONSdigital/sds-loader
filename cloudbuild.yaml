@@ -35,6 +35,8 @@ steps:
         "PROJECT_ID=${PROJECT_ID}",
         "--set-env-vars",
         "RETAIN_OLD_DATASETS=true",
+        "--set-env-vars",
+        "SECRET_ID=iap-secret",
         "--cpu-boost",
         "--session-affinity",
         "--min-instances",
