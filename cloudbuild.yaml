@@ -39,6 +39,8 @@ steps:
         "SECRET_ID=iap-secret",
         "--set-env-vars",
         "SCHEMA_PUBLISH_BUCKET_NAME=ons-sds-angus-europe-west2-schema-publish",
+        "--set-env-vars",
+        "SDS_URL=https://34.98.110.64.nip.io",
         "--cpu-boost",
         "--session-affinity",
         "--min-instances",
