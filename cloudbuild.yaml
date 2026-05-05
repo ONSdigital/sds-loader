@@ -37,6 +37,8 @@ steps:
         "RETAIN_OLD_DATASETS=true",
         "--set-env-vars",
         "SECRET_ID=iap-secret",
+        "--set-env-vars",
+        "SCHEMA_PUBLISH_BUCKET_NAME=ons-sds-angus-europe-west2-schema-publish",
         "--cpu-boost",
         "--session-affinity",
         "--min-instances",
