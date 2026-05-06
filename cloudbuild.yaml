@@ -56,7 +56,7 @@ steps:
         "--timeout",
         "3600s",
         "--service-account",
-        "publish-schema-sa@ons-sds-angus.iam.gserviceaccount.com"
+        "cloudbuild-sa@ons-sds-angus.iam.gserviceaccount.com"
       ]
 
 options:
