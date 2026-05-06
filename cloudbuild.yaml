@@ -55,6 +55,8 @@ steps:
         "16Gi",
         "--timeout",
         "3600s",
+        "--service-account",
+        "publish-schema-sa@ons-sds-angus.iam.gserviceaccount.com"
       ]
 
 options:
