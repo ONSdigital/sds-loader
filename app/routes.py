@@ -1,4 +1,3 @@
-import json
 from typing import Literal, Annotated
 
 from fastapi import APIRouter, Request
@@ -13,6 +12,7 @@ from app.exceptions import NonCriticalException, DatasetException, SchemaExcepti
 from app.services.dataset_service import DatasetService
 from app.services.schema_service import SchemaService
 from app.settings import get_instance
+from app.util.file_getters import get_file_path_from_bucket_notification, get_file_paths_from_github_notification
 
 logger = get_logger()
 router = APIRouter()
@@ -44,25 +44,19 @@ async def version():
 # ------------------------
 
 
-def get_files_from_message(message) -> list[str]:
-    raw_data = get_data(message)
-    raw_dict = json.loads(raw_data)
-    logger.info("Pubusb message", raw_dict)
-    files = [raw_dict["name"]]
-    return files
-
-
 @router.post("/events/schema/publish")
 async def publish_schemas(
     request: Request,
     source: Annotated[
-        Literal["github", "bucket"], Query(description="The source of the files specified in this request.")
+        Literal["github", "bucket"], Query(description="The source of the file specified in this request.")
     ] = "github",
     schema_service: SchemaService = DEPS.depends(SchemaService),
 ):
     """
-    This endpoint handles a publishing schemas from a given
-    location.
+    This endpoint handles a publishing schemas from a given location
+
+    - If the source is "bucket", this will always be a single file (the one added to the bucket)
+    - If the source is "github", this could be multiple files (the new additions to the repo)
     """
 
     try:
@@ -77,7 +71,10 @@ async def publish_schemas(
 
     try:
         # Publish the new schemas
-        schema_service.publish_new_schemas(source=source, file_list=get_files_from_message(message))
+        schema_service.publish_new_schemas(
+            source=source,
+            file_list=[get_file_path_from_bucket_notification(message)] if source.lower() == "bucket" else get_file_paths_from_github_notification(message),
+        )
     except NonCriticalException as e:
         # Return a status 200 (non-critical exception)
         return JSONResponse(

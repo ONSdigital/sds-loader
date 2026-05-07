@@ -89,7 +89,7 @@ class TestPublishSchemasEndpoint:
             )
 
             # Create fake files to simulate new added schemas sent to loader
-            received_filenames = "gcp/ons-sdx-bob/buckets/v1.json"
+            received_filenames = '{"name": "v1.json"}'
 
             # Create a TestClient instance
             client = TestClient(test_app)
@@ -103,7 +103,7 @@ class TestPublishSchemasEndpoint:
             assert response.status_code == 200
 
             # Assert the file was published by the mock_bucket_publisher
-            assert "gcp/ons-sdx-bob/buckets/v1.json" in mock_bucket_publisher.published_schemas
+            assert "v1.json" in mock_bucket_publisher.published_schemas
 
             # Assert the mock_repo_publisher is empty
             assert len(mock_repo_publisher.published_schemas) == 0
