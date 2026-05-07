@@ -56,7 +56,9 @@ async def publish_schemas(
     This endpoint handles a publishing schemas from a given location
 
     - If the source is "bucket", this will always be a single file (the one added to the bucket)
+        - The body of the message Must contain a "name" field in the json payload, this specifies the name of the file in the bucket
     - If the source is "github", this could be multiple files (the new additions to the repo)
+        - The body of the message must contain a comma separated list of file names
     """
 
     try:
