@@ -47,6 +47,7 @@ async def version():
 def get_files_from_message(message) -> list[str]:
     raw_data = get_data(message)
     raw_dict = json.loads(raw_data)
+    logger.info("Pubusb message", raw_dict)
     files = [raw_dict["name"]]
     return files
 
