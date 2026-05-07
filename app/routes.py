@@ -1,3 +1,4 @@
+import json
 from typing import Literal, Annotated
 
 from fastapi import APIRouter, Request
@@ -43,6 +44,13 @@ async def version():
 # ------------------------
 
 
+def get_files_from_message(message) -> list[str]:
+    raw_data = get_data(message)
+    raw_dict = json.loads(raw_data)
+    files = [raw_dict["name"]]
+    return files
+
+
 @router.post("/events/schema/publish")
 async def publish_schemas(
     request: Request,
@@ -68,7 +76,7 @@ async def publish_schemas(
 
     try:
         # Publish the new schemas
-        schema_service.publish_new_schemas(source=source, file_list=get_data(message).split("\n"))
+        schema_service.publish_new_schemas(source=source, file_list=get_files_from_message(message))
     except NonCriticalException as e:
         # Return a status 200 (non-critical exception)
         return JSONResponse(
