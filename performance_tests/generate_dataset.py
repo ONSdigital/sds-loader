@@ -1,6 +1,7 @@
 import json
 import random
 from pathlib import Path
+from typing import Any
 
 
 class JsonGenerator:
@@ -43,7 +44,7 @@ class JsonGenerator:
 
     def _generate_json_data(
         self, entries_count: int, survey_id: str, fixed_identifiers: list[str]
-    ) -> dict[str, any]:
+    ) -> dict[str, Any]:
         """
         Generate the JSON data for the dataset file.
 

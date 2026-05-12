@@ -3,7 +3,7 @@ from typing import Literal, Annotated
 from fastapi import APIRouter, Request
 from fastapi.params import Query
 from lagom.integrations.fast_api import FastApiIntegration
-from sdx_base.models.pubsub import get_message, Message, get_data
+from sdx_base.models.pubsub import get_message, Message
 from starlette.responses import JSONResponse
 
 from app import get_logger

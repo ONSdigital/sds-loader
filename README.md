@@ -1,5 +1,7 @@
 # sds-loader
 
+![Version](https://ons-badges-752336435892.europe-west2.run.app/api/badge/custom?left=Python&right=3.13)
+
 A microservice for loading and modifying data into SDS
 
 
@@ -108,4 +110,7 @@ docker run \
 		spine3/firebase-emulator &
 ```
 
+## Performance testing
+
+The directory `performance_tests` contains a script for generating large datasets, that can be used to performance test the application
 
