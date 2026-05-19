@@ -1,65 +1,66 @@
+from unittest import TestCase
+import pytest
 from sds_common.config.config import CONFIG
 from sds_common.enums.buckets import Bucket
+from sds_common.repositories.bucket_loader import BucketLoader
 from sds_common.services.bucket_service import BucketService
-from sds_common.test_helpers.bucket_loader import BucketLoader
-from sds_common.test_helpers.common_test_data import test_schema_subscriber_id_success, test_schema_subscriber_id_fail
-from sds_common.test_helpers.integration_helpers import poll_subscription, cleanup, pubsub_setup, inject_wait_time, \
+from sds_common.test_helpers.common_test_data import test_schema_subscriber_id_fail, test_schema_subscriber_id_success
+from sds_common.test_helpers.integration_helpers import cleanup, pubsub_setup, inject_wait_time, poll_subscription, \
     pubsub_purge_messages, pubsub_teardown
 from sds_common.test_helpers.pub_sub_helper import PubSubHelper
 
 
-def test_publish_schema_to_gcs():
-    """
-    Test publishing a schema via GCS happy path.
+class SchemaPublishGcsIntegrationTest(TestCase):
+    @classmethod
+    def setup_class(cls):
+        cleanup()
+        cls.bucket_service = BucketService(
+            Bucket.SCHEMA_PUBLISH_BUCKET, BucketLoader()
+        )
+        cls.schema_queue_pubsub_helper = PubSubHelper(
+            CONFIG.PUBLISH_SCHEMA_QUEUE_TOPIC_ID
+        )
+        cls.schema_error_pubsub_helper = PubSubHelper(
+            CONFIG.PUBLISH_SCHEMA_ERROR_TOPIC_ID
+        )
+        cls.schema_success_pubsub_helper = PubSubHelper(
+            CONFIG.PUBLISH_SCHEMA_SUCCESS_TOPIC_ID
+        )
+        pubsub_setup(
+            cls.schema_error_pubsub_helper, test_schema_subscriber_id_fail
+        )
+        pubsub_setup(
+            cls.schema_success_pubsub_helper, test_schema_subscriber_id_success
+        )
+        inject_wait_time(3)  # Inject wait time to allow resources to complete setting up
 
-    - We drop a valid schema file into the GCS schema publish bucket.
-    - We poll the schema_success_topic to check if the schema was published.
-    - We assert that the schema was published successfully.
-    """
+    @classmethod
+    def teardown_class(cls) -> None:
+        cleanup()
+        inject_wait_time(3)  # Inject wait time to allow all messages to be processed
+        pubsub_purge_messages(
+            cls.schema_success_pubsub_helper, test_schema_subscriber_id_success
+        )
+        pubsub_teardown(
+            cls.schema_success_pubsub_helper, test_schema_subscriber_id_success
+        )
 
-    # Run cleanup
-    cleanup()
+    @pytest.mark.order(1)
+    def test_publish_schema_to_gcs(self):
+        """
+        Test publishing a schema via GCS happy path.
 
-    # Create a bucket service
-    bucket_service = BucketService(
-        Bucket.SCHEMA_PUBLISH_BUCKET, BucketLoader()
-    )
+        *We drop a valid schema file into the GCS schema publish bucket
+        *We poll the schema_success_topic to check if the schema was published.
+        *We assert that the schema was published successfully.
 
-    # Create a pubsub helper
-    schema_error_pubsub_helper = PubSubHelper(
-        CONFIG.PUBLISH_SCHEMA_ERROR_TOPIC_ID
-    )
-    schema_success_pubsub_helper = PubSubHelper(
-        CONFIG.PUBLISH_SCHEMA_SUCCESS_TOPIC_ID
-    )
-    pubsub_setup(
-        schema_error_pubsub_helper, test_schema_subscriber_id_fail
-    )
-    pubsub_setup(
-        schema_success_pubsub_helper, test_schema_subscriber_id_success
-    )
-    inject_wait_time(3)  # Inject wait time to allow resources to complete setting up
+        """
+        self.bucket_service.upload_file_to_bucket("src/tests/test_data/test_schema_success.json")
 
-    # Upload the file to the bucket
-    bucket_service.upload_file_to_bucket("src/tests/test_data/test_schema_success.json")
+        messages = poll_subscription(
+            self.schema_success_pubsub_helper, test_schema_subscriber_id_success
+        )
 
-    # Poll pubsub for a response
-    messages = poll_subscription(
-        schema_success_pubsub_helper, test_schema_subscriber_id_success
-    )
-
-    # Assertions
-    assert messages is not None
-    for message in messages:
-        assert "guid" in message
-
-    # Cleanup
-    cleanup()
-    inject_wait_time(3)  # Inject wait time to allow all messages to be processed
-    pubsub_purge_messages(
-        schema_success_pubsub_helper, test_schema_subscriber_id_success
-    )
-    pubsub_teardown(
-        schema_success_pubsub_helper, test_schema_subscriber_id_success
-    )
-
+        assert messages is not None
+        for message in messages:
+            assert "guid" in message
