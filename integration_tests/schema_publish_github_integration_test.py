@@ -120,7 +120,7 @@ class SchemaPublishGithubIntegrationTest(TestCase):
             assert "error_type" in message
             assert message["error_type"] == "SchemaVersionMismatchError"
 
-    @pytest.mark.order(3)
+    @pytest.mark.order(4)
     def test_publish_schema_survey_id_error(self):
         """
         Test the publish-schema Cloud Function returns SurveyIDError.
@@ -142,7 +142,7 @@ class SchemaPublishGithubIntegrationTest(TestCase):
             assert "error_type" in message
             assert message["error_type"] == "SurveyIdError"
 
-    @pytest.mark.order(4)
+    @pytest.mark.order(5)
     def test_schema_version_error(self):
         """
         Test the publish-schema Cloud Function returns SchemaVersionError.
