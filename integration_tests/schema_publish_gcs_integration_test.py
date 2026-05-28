@@ -1,5 +1,6 @@
 from unittest import TestCase
 import pytest
+from sds_common.config import config
 from sds_common.config.config import CONFIG
 from sds_common.enums.buckets import Bucket
 from sds_common.repositories.bucket_loader import BucketLoader
@@ -8,6 +9,8 @@ from sds_common.test_helpers.common_test_data import test_schema_subscriber_id_f
 from sds_common.test_helpers.integration_helpers import cleanup, pubsub_setup, inject_wait_time, poll_subscription, \
     pubsub_purge_messages, pubsub_teardown
 from sds_common.test_helpers.pub_sub_helper import PubSubHelper
+
+from app.routes import logger
 
 
 class SchemaPublishGcsIntegrationTest(TestCase):
@@ -55,12 +58,16 @@ class SchemaPublishGcsIntegrationTest(TestCase):
         *We assert that the schema was published successfully.
 
         """
-        # TODO move this into folder?
+
+        logger.info(f"Success topic: {CONFIG.PUBLISH_SCHEMA_SUCCESS_TOPIC_ID}")
+
         self.bucket_service.upload_file_to_bucket("integration_tests/test_data/test_schema_success.json")
 
         messages = poll_subscription(
             self.schema_success_pubsub_helper, test_schema_subscriber_id_success
         )
+
+        logger.info(f"Received messages: {messages}")
 
         assert messages is not None
         for message in messages:
