@@ -4,7 +4,7 @@ from sds_common.config.config import CONFIG
 from sds_common.enums.buckets import Bucket
 from sds_common.repositories.bucket_loader import BucketLoader
 from sds_common.services.bucket_service import BucketService
-from sds_common.test_helpers.common_test_data import test_schema_subscriber_id_fail, test_schema_subscriber_id_success
+from sds_common.test_helpers.common_test_data import test_schema_subscriber_id_success
 from sds_common.test_helpers.integration_helpers import cleanup, pubsub_setup, inject_wait_time, poll_subscription, \
     pubsub_purge_messages, pubsub_teardown
 from sds_common.test_helpers.pub_sub_helper import PubSubHelper
@@ -22,14 +22,8 @@ class SchemaPublishGcsIntegrationTest(TestCase):
         cls.schema_queue_pubsub_helper = PubSubHelper(
             CONFIG.PUBLISH_SCHEMA_QUEUE_TOPIC_ID
         )
-        cls.schema_error_pubsub_helper = PubSubHelper(
-            CONFIG.PUBLISH_SCHEMA_ERROR_TOPIC_ID
-        )
         cls.schema_success_pubsub_helper = PubSubHelper(
             CONFIG.PUBLISH_SCHEMA_SUCCESS_TOPIC_ID
-        )
-        pubsub_setup(
-            cls.schema_error_pubsub_helper, test_schema_subscriber_id_fail
         )
         pubsub_setup(
             cls.schema_success_pubsub_helper, test_schema_subscriber_id_success

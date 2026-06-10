@@ -12,7 +12,6 @@ from sds_common.test_helpers.integration_helpers import (
 )
 from sds_common.test_helpers.pub_sub_helper import PubSubHelper
 from sds_common.test_helpers.common_test_data import (
-    test_schema_subscriber_id_fail,
     test_schema_subscriber_id_success,
 )
 
@@ -24,13 +23,9 @@ class SchemaPublishIntegrationTest(TestCase):
         cls.schema_queue_pubsub_helper = PubSubHelper(
             CONFIG.PUBLISH_SCHEMA_QUEUE_TOPIC_ID
         )
-        cls.schema_error_pubsub_helper = PubSubHelper(
-            CONFIG.PUBLISH_SCHEMA_ERROR_TOPIC_ID
-        )
         cls.schema_success_pubsub_helper = PubSubHelper(
             CONFIG.PUBLISH_SCHEMA_SUCCESS_TOPIC_ID
         )
-        pubsub_setup(cls.schema_error_pubsub_helper, test_schema_subscriber_id_fail)
         pubsub_setup(
             cls.schema_success_pubsub_helper, test_schema_subscriber_id_success
         )
@@ -41,12 +36,8 @@ class SchemaPublishIntegrationTest(TestCase):
         cleanup()
         inject_wait_time(3)  # Inject wait time to allow all message to be processed
         pubsub_purge_messages(
-            cls.schema_error_pubsub_helper, test_schema_subscriber_id_fail
-        )
-        pubsub_purge_messages(
             cls.schema_success_pubsub_helper, test_schema_subscriber_id_success
         )
-        pubsub_teardown(cls.schema_error_pubsub_helper, test_schema_subscriber_id_fail)
         pubsub_teardown(
             cls.schema_success_pubsub_helper, test_schema_subscriber_id_success
         )
