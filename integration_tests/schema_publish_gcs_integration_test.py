@@ -3,7 +3,7 @@ import pytest
 from sds_common.config.config import CONFIG
 from sds_common.enums.buckets import Bucket
 from sds_common.repositories.bucket_loader import BucketLoader
-from sds_common.services.bucket_service import BucketService
+from sds_common.services.file_service import FileService
 from sds_common.test_helpers.common_test_data import test_schema_subscriber_id_success
 from sds_common.test_helpers.integration_helpers import cleanup, pubsub_setup, inject_wait_time, poll_subscription, \
     pubsub_purge_messages, pubsub_teardown
@@ -16,7 +16,7 @@ class SchemaPublishGcsIntegrationTest(TestCase):
     @classmethod
     def setup_class(cls):
         cleanup()
-        cls.bucket_service = BucketService(
+        cls.bucket_service = FileService(
             Bucket.SCHEMA_PUBLISH_BUCKET, BucketLoader()
         )
         cls.schema_queue_pubsub_helper = PubSubHelper(
