@@ -42,12 +42,12 @@ class SchemaPublishIntegrationTest(TestCase):
         pubsub_setup(
             cls.schema_success_pubsub_helper, test_schema_subscriber_id_success
         )
-        inject_wait_time(3)  # Inject wait time to allow resources properly set up
+        inject_wait_time(5)  # Inject wait time to allow resources properly set up
 
     @classmethod
     def teardown_class(cls) -> None:
         cleanup()
-        inject_wait_time(3)  # Inject wait time to allow all message to be processed
+        inject_wait_time(5)  # Inject wait time to allow all message to be processed
         pubsub_purge_messages(
             cls.schema_error_pubsub_helper, test_schema_subscriber_id_fail
         )
