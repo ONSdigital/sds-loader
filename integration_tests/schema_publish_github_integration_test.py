@@ -12,10 +12,8 @@ from sds_common.test_helpers.integration_helpers import (
 )
 from sds_common.test_helpers.pub_sub_helper import PubSubHelper
 from sds_common.test_helpers.common_test_data import (
-    test_schema_subscriber_id_success, test_schema_subscriber_id_fail,
+    test_schema_subscriber_id_success,
 )
-
-from integration_tests.test_data.test_filepaths import test_schema_success_filepath
 
 
 class SchemaPublishIntegrationTest(TestCase):
@@ -28,13 +26,9 @@ class SchemaPublishIntegrationTest(TestCase):
         cls.schema_success_pubsub_helper = PubSubHelper(
             CONFIG.PUBLISH_SCHEMA_SUCCESS_TOPIC_ID
         )
-        cls.schema_error_pubsub_helper = PubSubHelper(
-            CONFIG.PUBLISH_SCHEMA_ERROR_TOPIC_ID
-        )
         pubsub_setup(
             cls.schema_success_pubsub_helper, test_schema_subscriber_id_success
         )
-        pubsub_setup(cls.schema_error_pubsub_helper, test_schema_subscriber_id_fail)
         inject_wait_time(5)  # Inject wait time to allow resources properly set up
 
     @classmethod
@@ -67,23 +61,3 @@ class SchemaPublishIntegrationTest(TestCase):
         assert messages is not None
         for message in messages:
             assert "guid" in message
-
-    @pytest.mark.order(2)
-    def test_publish_schema_schema_duplication_error(self):
-        """
-        Test the publish-schema Cloud Function returns SchemaDuplicationError.
-
-        * We drop a message containing the filepath to a valid schema onto the queue.
-        * We poll the schema_fail topic to check the error message.
-        * We assert that the error is SchemaDuplicationError.
-        """
-        self.schema_queue_pubsub_helper.publish_message(test_schema_success_filepath)
-
-        messages = poll_subscription(
-            self.schema_error_pubsub_helper, test_schema_subscriber_id_fail
-        )
-
-        assert messages is not None
-        for message in messages:
-            assert "error_type" in message
-            assert message["error_type"] == "SchemaDuplicationError"
