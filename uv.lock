@@ -1302,7 +1302,7 @@ wheels = [
 
 [[package]]
 name = "sds-common"
-version = "1.0.33"
+version = "1.0.34"
 source = { registry = "https://europe-west2-python.pkg.dev/ons-sds-ci/sds-python-packages/simple/" }
 dependencies = [
     { name = "cloudevents" },
@@ -1321,9 +1321,9 @@ dependencies = [
     { name = "requests" },
     { name = "setuptools" },
 ]
-sdist = { url = "https://europe-west2-python.pkg.dev/ons-sds-ci/sds-python-packages/sds-common/sds_common-1.0.33.tar.gz", hash = "sha256:7193234fea97c31ded242476a3d02f3605e09693769affaf9f550c1f4e61353a" }
+sdist = { url = "https://europe-west2-python.pkg.dev/ons-sds-ci/sds-python-packages/sds-common/sds_common-1.0.34.tar.gz", hash = "sha256:f48474e7b7fef69bded3fa68298bd17ae10737bd24e37cbbc9b6c55d6d48d4df" }
 wheels = [
-    { url = "https://europe-west2-python.pkg.dev/ons-sds-ci/sds-python-packages/sds-common/sds_common-1.0.33-py3-none-any.whl", hash = "sha256:7d4e0b41101cc3a0132e924d87d7784dcafd03d4478bae9bc0442896b9f77599" },
+    { url = "https://europe-west2-python.pkg.dev/ons-sds-ci/sds-python-packages/sds-common/sds_common-1.0.34-py3-none-any.whl", hash = "sha256:86f33b2904c32a01799098963a352810bbebccdaf1f7834ea2858b0a90f805ec" },
 ]
 
 [[package]]
@@ -1362,7 +1362,7 @@ requires-dist = [
     { name = "polyfactory", specifier = ">=3.3.0" },
     { name = "pydantic-settings", specifier = ">=2.13.1" },
     { name = "requests", specifier = ">=2.32.3" },
-    { name = "sds-common", specifier = "==1.0.33", index = "https://europe-west2-python.pkg.dev/ons-sds-ci/sds-python-packages/simple/" },
+    { name = "sds-common", specifier = "==1.0.34", index = "https://europe-west2-python.pkg.dev/ons-sds-ci/sds-python-packages/simple/" },
     { name = "sdx-base", specifier = ">=0.2.9", index = "https://europe-west2-python.pkg.dev/ons-sdx-ci/sdx-python-packages/simple/" },
     { name = "starlette", specifier = ">=0.48.0" },
 ]
