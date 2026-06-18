@@ -53,7 +53,7 @@ class MockPublisher:
                 self.side_effects[file_name]()
             except Exception as e:
                 print(e)
-                return
+                raise e
 
         self.published_schemas.append(file_name)
 
@@ -65,7 +65,7 @@ class MockErrorNotificationProtocol:
 
     def send_message(self, error: SchemaPublishError, topic_id: str):
         print(f"Sent fake notification for error: {error} to topic: {topic_id}")
-        self.sent_notifications.append((topic_id, error))
+        self.sent_notifications.append([topic_id, error])
 
 # ------------------------
 # Testing classes for dataset_service

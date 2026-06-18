@@ -1,4 +1,4 @@
-from sds_common.models.schema_publish_errors import SchemaDuplicationError
+from sds_common.models.schema_publish_errors import SchemaDuplicationError, SchemaPublishError
 
 from app.services.schema_service import SchemaService
 from tests.conftest import MockPublisher, MockErrorNotificationProtocol
@@ -12,6 +12,7 @@ def raise_schema_error():
 
 
 class TestPublishNewSchemas:
+
     def test_publish_new_schemas_publishes_after_exception(
         self,
         mock_repo_publisher: MockPublisher,
@@ -54,6 +55,9 @@ class TestPublishNewSchemas:
 
         # Assert the bucket publisher is empty
         assert mock_bucket_publisher.published_schemas == []
+
+        # Assert the mock_error_notifier was called for the schema that raised an exception
+        assert len(mock_error_notifier.sent_notifications) == 1
 
     def test_publish_all_files_successfully(
         self,
