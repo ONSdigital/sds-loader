@@ -5,6 +5,7 @@ from unittest.mock import create_autospec
 import pytest
 from fastapi import FastAPI
 from polyfactory.pytest_plugin import register_fixture
+from sds_common.models.schema_publish_errors import SchemaPublishError
 from sdx_base.run import initialise
 from sdx_base.server.server import RouterConfig
 from sdx_base.server.tx_id import txid_not_applicable
@@ -57,6 +58,15 @@ class MockPublisher:
         self.published_schemas.append(file_name)
 
 
+class MockErrorNotificationProtocol:
+
+    def __init__(self):
+        self.sent_notifications = []
+
+    def send_message(self, error: SchemaPublishError, topic_id: str):
+        print(f"Sent fake notification for error: {error} to topic: {topic_id}")
+        self.sent_notifications.append((topic_id, error))
+
 # ------------------------
 # Testing classes for dataset_service
 # ------------------------
@@ -90,6 +100,10 @@ def mock_bucket_publisher() -> MockPublisher:
         label="bucket publisher",
     )
 
+
+@pytest.fixture
+def mock_error_notifier() -> MockErrorNotificationProtocol:
+    return MockErrorNotificationProtocol()
 
 # ------------------------
 # Fixtures for dataset_service

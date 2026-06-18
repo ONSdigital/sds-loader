@@ -1,7 +1,7 @@
 from sds_common.models.schema_publish_errors import SchemaDuplicationError
 
 from app.services.schema_service import SchemaService
-from tests.conftest import MockPublisher
+from tests.conftest import MockPublisher, MockErrorNotificationProtocol
 
 
 def raise_schema_error():
@@ -16,6 +16,7 @@ class TestPublishNewSchemas:
         self,
         mock_repo_publisher: MockPublisher,
         mock_bucket_publisher: MockPublisher,
+        mock_error_notifier: MockErrorNotificationProtocol
     ):
         # Define input filenames
         filenames = [
@@ -32,6 +33,7 @@ class TestPublishNewSchemas:
         service = SchemaService(
             repository_publisher=mock_repo_publisher,
             bucket_publisher=mock_bucket_publisher,
+            error_notification_protocol=mock_error_notifier,
         )
 
         # Publish schemas from GitHub
@@ -57,6 +59,7 @@ class TestPublishNewSchemas:
         self,
         mock_repo_publisher: MockPublisher,
         mock_bucket_publisher: MockPublisher,
+        mock_error_notifier: MockErrorNotificationProtocol
     ):
         # Define input filenames
         repo_filenames = [
@@ -76,6 +79,7 @@ class TestPublishNewSchemas:
         service = SchemaService(
             repository_publisher=mock_repo_publisher,
             bucket_publisher=mock_bucket_publisher,
+            error_notification_protocol=mock_error_notifier,
         )
 
         # Publish the repository filenames
@@ -98,6 +102,7 @@ class TestPublishNewSchemas:
         self,
         mock_repo_publisher: MockPublisher,
         mock_bucket_publisher: MockPublisher,
+        mock_error_notifier: MockErrorNotificationProtocol
     ):
         """
         TODO this can probably be refactored
@@ -119,6 +124,7 @@ class TestPublishNewSchemas:
         service = SchemaService(
             repository_publisher=mock_repo_publisher,
             bucket_publisher=mock_bucket_publisher,
+            error_notification_protocol=mock_error_notifier,
         )
 
         service.publish_new_schemas("github", list(filenames.keys()))
