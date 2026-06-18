@@ -34,7 +34,7 @@ class TestPublishSchemasEndpoint:
         test_app: FastAPI,
         mock_repo_publisher: MockPublisher,
         mock_bucket_publisher: MockPublisher,
-        mock_error_notifier: MockErrorNotificationProtocol
+        mock_error_notifier: MockErrorNotificationProtocol,
     ):
         """
         Test our publish schemas endpoint (to GitHub)
@@ -50,7 +50,7 @@ class TestPublishSchemasEndpoint:
             test_container[SchemaService] = SchemaService(
                 repository_publisher=mock_repo_publisher,
                 bucket_publisher=mock_bucket_publisher,
-                error_notification_protocol=mock_error_notifier
+                error_notification_protocol=mock_error_notifier,
             )
 
             # Create fake files to simulate new added schemas sent to loader
@@ -77,11 +77,10 @@ class TestPublishSchemasEndpoint:
 
     def test_publish_schemas_to_bucket_with_all_valid_schemas(
         self,
-        test_app:
-        FastAPI,
+        test_app: FastAPI,
         mock_repo_publisher: MockPublisher,
         mock_bucket_publisher: MockPublisher,
-        mock_error_notifier: MockErrorNotificationProtocol
+        mock_error_notifier: MockErrorNotificationProtocol,
     ):
         """
         Test our publish schemas endpoint with a single
@@ -96,7 +95,7 @@ class TestPublishSchemasEndpoint:
             test_container[SchemaService] = SchemaService(
                 repository_publisher=mock_repo_publisher,
                 bucket_publisher=mock_bucket_publisher,
-                error_notification_protocol=mock_error_notifier
+                error_notification_protocol=mock_error_notifier,
             )
 
             # Create fake files to simulate new added schemas sent to loader
@@ -124,7 +123,7 @@ class TestPublishSchemasEndpoint:
         test_app: FastAPI,
         mock_repo_publisher: MockPublisher,
         mock_bucket_publisher: MockPublisher,
-        mock_error_notifier: MockErrorNotificationProtocol
+        mock_error_notifier: MockErrorNotificationProtocol,
     ):
         """
         Test our publish schemas endpoint (to GitHub)
@@ -144,7 +143,7 @@ class TestPublishSchemasEndpoint:
             test_container[SchemaService] = SchemaService(
                 repository_publisher=mock_repo_publisher,
                 bucket_publisher=mock_bucket_publisher,
-                error_notification_protocol=mock_error_notifier
+                error_notification_protocol=mock_error_notifier,
             )
 
             # Create fake files to simulate new added schemas sent to loader

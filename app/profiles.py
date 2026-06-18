@@ -36,9 +36,9 @@ class FakePublisher:
 
 
 class FakeErrorNotificationProtocol:
-
     def send_message(self, error: SchemaPublishError, topic_id: str):
         print(f"Sent fake notification for error: {error} to topic: {topic_id}")
+
 
 # -------------------------
 # DEV PROFILE
@@ -58,7 +58,7 @@ def dev(container: Container):
     container[SchemaService] = SchemaService(
         bucket_publisher=FakePublisher(name="Fake bucket publisher"),
         repository_publisher=FakePublisher(name="Fake github publisher"),
-        error_notification_protocol=FakeErrorNotificationProtocol()
+        error_notification_protocol=FakeErrorNotificationProtocol(),
     )
 
 
@@ -101,7 +101,7 @@ def production(container: Container):
     container[SchemaService] = SchemaService(
         bucket_publisher=GcsSchemaPublisher(),
         repository_publisher=GithubSchemaPublisher(),
-        error_notification_protocol=PubSubService()
+        error_notification_protocol=PubSubService(),
     )
 
 
@@ -129,7 +129,7 @@ def local_storage_firestore(container: Container):
     container[SchemaService] = SchemaService(
         bucket_publisher=FakePublisher(name="Fake bucket publisher"),
         repository_publisher=FakePublisher(name="Fake github publisher"),
-        error_notification_protocol=FakeErrorNotificationProtocol()
+        error_notification_protocol=FakeErrorNotificationProtocol(),
     )
 
 

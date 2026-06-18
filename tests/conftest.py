@@ -59,13 +59,13 @@ class MockPublisher:
 
 
 class MockErrorNotificationProtocol:
-
     def __init__(self):
         self.sent_notifications = []
 
     def send_message(self, error: SchemaPublishError, topic_id: str):
         print(f"Sent fake notification for error: {error} to topic: {topic_id}")
         self.sent_notifications.append([topic_id, error])
+
 
 # ------------------------
 # Testing classes for dataset_service
@@ -104,6 +104,7 @@ def mock_bucket_publisher() -> MockPublisher:
 @pytest.fixture
 def mock_error_notifier() -> MockErrorNotificationProtocol:
     return MockErrorNotificationProtocol()
+
 
 # ------------------------
 # Fixtures for dataset_service

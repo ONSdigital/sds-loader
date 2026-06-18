@@ -12,12 +12,11 @@ def raise_schema_error():
 
 
 class TestPublishNewSchemas:
-
     def test_publish_new_schemas_publishes_after_exception(
         self,
         mock_repo_publisher: MockPublisher,
         mock_bucket_publisher: MockPublisher,
-        mock_error_notifier: MockErrorNotificationProtocol
+        mock_error_notifier: MockErrorNotificationProtocol,
     ):
         # Define input filenames
         filenames = [
@@ -63,7 +62,7 @@ class TestPublishNewSchemas:
         self,
         mock_repo_publisher: MockPublisher,
         mock_bucket_publisher: MockPublisher,
-        mock_error_notifier: MockErrorNotificationProtocol
+        mock_error_notifier: MockErrorNotificationProtocol,
     ):
         # Define input filenames
         repo_filenames = [
@@ -106,7 +105,7 @@ class TestPublishNewSchemas:
         self,
         mock_repo_publisher: MockPublisher,
         mock_bucket_publisher: MockPublisher,
-        mock_error_notifier: MockErrorNotificationProtocol
+        mock_error_notifier: MockErrorNotificationProtocol,
     ):
         """
         TODO this can probably be refactored

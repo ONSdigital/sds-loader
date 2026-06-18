@@ -56,9 +56,7 @@ class SchemaService:
             logger.info(f"Successfully published schema: {file_name}")
         except SchemaPublishError as e:
             logger.exception(e.error_message)
-            self.error_notification_protocol.send_message(
-                e, CONFIG.PUBLISH_SCHEMA_ERROR_TOPIC_ID
-            )
+            self.error_notification_protocol.send_message(e, CONFIG.PUBLISH_SCHEMA_ERROR_TOPIC_ID)
 
     def _filter_github_files(self, files: list[str]) -> list[str]:  # noqa
         """

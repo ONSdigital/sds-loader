@@ -2,9 +2,7 @@ from app.util.file_getters import get_file_path_from_bucket_notification
 
 
 class TestFilePathFromBucketNotification:
-
     def test_get_file_path_from_bucket_notification(self):
-
         message_body = """
         {
           "kind": "storage#object",

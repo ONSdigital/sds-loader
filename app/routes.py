@@ -75,7 +75,9 @@ async def publish_schemas(
         # Publish the new schemas
         schema_service.publish_new_schemas(
             source=source,
-            file_list=[get_file_path_from_bucket_notification(get_data(message))] if source.lower() == "bucket" else get_file_paths_from_github_notification(get_data(message)),
+            file_list=[get_file_path_from_bucket_notification(get_data(message))]
+            if source.lower() == "bucket"
+            else get_file_paths_from_github_notification(get_data(message)),
         )
     except NonCriticalException as e:
         # Return a status 200 (non-critical exception)
