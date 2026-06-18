@@ -15,7 +15,9 @@ from sds_common.test_helpers.common_test_data import (
     test_schema_subscriber_id_success, test_schema_subscriber_id_fail,
 )
 
-from integration_tests.test_data.test_filepaths import test_schema_success_filepath
+from integration_tests.test_data.test_filepaths import test_schema_success_filepath, test_schema_fetch_error_filepath, \
+    test_schema_json_decode_error_filepath, test_schema_version_error_filepath, test_schema_survey_id_error_filepath, \
+    test_schema_version_mismatch_filepath
 
 
 class SchemaPublishIntegrationTest(TestCase):
@@ -89,3 +91,113 @@ class SchemaPublishIntegrationTest(TestCase):
         for message in messages:
             assert "error_type" in message
             assert message["error_type"] == "SchemaDuplicationError"
+
+    @pytest.mark.order(3)
+    def test_publish_schema_schema_version_mismatch_error(self):
+        """
+        Test the publish-schema Cloud Function returns SchemaVersionMismatchError.
+
+        * We drop a message containing the filepath to a schema with a mismatched version onto the queue.
+        * We poll the schema_fail topic to check the error message.
+        * We assert that the error is SchemaVersionMismatchError.
+        """
+        self.schema_queue_pubsub_helper.publish_message(
+            test_schema_version_mismatch_filepath
+        )
+
+        messages = poll_subscription(
+            self.schema_error_pubsub_helper, test_schema_subscriber_id_fail
+        )
+
+        assert messages is not None
+        for message in messages:
+            assert "error_type" in message
+            assert message["error_type"] == "SchemaVersionMismatchError"
+
+    @pytest.mark.order(4)
+    def test_publish_schema_survey_id_error(self):
+        """
+        Test the publish-schema Cloud Function returns SurveyIDError.
+
+        * We drop a message containing the filepath to a schema with a missing survey_id onto the queue.
+        * We poll the schema_fail topic to check the error message.
+        * We assert that the error is SurveyIDError.
+        """
+        self.schema_queue_pubsub_helper.publish_message(
+            test_schema_survey_id_error_filepath
+        )
+
+        messages = poll_subscription(
+            self.schema_error_pubsub_helper, test_schema_subscriber_id_fail
+        )
+
+        assert messages is not None
+        for message in messages:
+            assert "error_type" in message
+            assert message["error_type"] == "SurveyIdError"
+
+    @pytest.mark.order(5)
+    def test_schema_version_error(self):
+        """
+        Test the publish-schema Cloud Function returns SchemaVersionError.
+
+        * We drop a message containing the filepath to a schema with a missing schema_version onto the queue.
+        * We poll the schema_fail topic to check the error message.
+        * We assert that the error is SchemaVersionError.
+        """
+        self.schema_queue_pubsub_helper.publish_message(
+            test_schema_version_error_filepath
+        )
+
+        messages = poll_subscription(
+            self.schema_error_pubsub_helper, test_schema_subscriber_id_fail
+        )
+
+        assert messages is not None
+        for message in messages:
+            assert "error_type" in message
+            assert message["error_type"] == "SchemaVersionError"
+
+    @pytest.mark.order(6)
+    def test_schema_json_decode_error(self):
+        """
+        Test the publish-schema Cloud Function returns SchemaJSONDecodeError.
+
+        * We drop a message containing a filepath with invalid JSON onto the queue.
+        * We poll the schema_fail topic to check the error message.
+        * We assert that the error is SchemaJSONDecodeError.
+        """
+        self.schema_queue_pubsub_helper.publish_message(
+            test_schema_json_decode_error_filepath
+        )
+
+        messages = poll_subscription(
+            self.schema_error_pubsub_helper, test_schema_subscriber_id_fail
+        )
+
+        assert messages is not None
+        for message in messages:
+            assert "error_type" in message
+            assert message["error_type"] == "SchemaJSONDecodeError"
+
+    @pytest.mark.order(7)
+    def test_schema_fetch_error(self):
+        """
+        Test the publish-schema Cloud Function returns SchemaFetchError.
+
+        * We drop a message containing a fake filepath onto the queue.
+        * We poll the schema_fail topic to check the error message.
+        * We assert that the error is SchemaFetchError.
+        """
+        self.schema_queue_pubsub_helper.publish_message(
+            test_schema_fetch_error_filepath
+        )
+
+        messages = poll_subscription(
+            self.schema_error_pubsub_helper, test_schema_subscriber_id_fail
+        )
+
+        assert messages is not None
+        for message in messages:
+            assert "error_type" in message
+            assert message["error_type"] == "SchemaFetchError"
