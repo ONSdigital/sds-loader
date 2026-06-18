@@ -1,6 +1,10 @@
 import re
 from typing import Protocol
 
+from sds_common.config.config import CONFIG
+from sds_common.models.schema_publish_errors import SchemaPublishError
+from sds_common.services.pub_sub_service import PUB_SUB_SERVICE
+
 from app import get_logger
 from app.exceptions.schema_source_invalid_exception import SchemaSourceInvalidException
 
@@ -40,8 +44,10 @@ class SchemaService:
         try:
             publisher.publish_schema(file_name=file_name)
             logger.info(f"Successfully published schema: {file_name}")
-        except Exception as e:
-            logger.exception(f"Failed to publish schema {file_name}: {e}")
+        except SchemaPublishError as e:
+            logger.exception(e.error_message)
+            PUB_SUB_SERVICE.send_message(e, CONFIG.PUBLISH_SCHEMA_ERROR_TOPIC_ID)
+            return f"Error: {e.error_message}", 500
 
     def _filter_github_files(self, files: list[str]) -> list[str]:  # noqa
         """
