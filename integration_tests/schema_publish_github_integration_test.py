@@ -39,7 +39,7 @@ class SchemaPublishIntegrationTest(TestCase):
         pubsub_setup(
             cls.schema_error_pubsub_helper, test_schema_subscriber_id_fail
         )
-        inject_wait_time(5)  # Inject wait time to allow resources properly set up
+        inject_wait_time(10)  # Inject wait time to allow resources properly set up
 
     @classmethod
     def teardown_class(cls) -> None:

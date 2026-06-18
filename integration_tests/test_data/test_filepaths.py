@@ -11,4 +11,4 @@ test_schema_version_error_filepath = (
 test_schema_json_decode_error_filepath = (
     "schemas/test_schemas/test_schema_json_decode_error.json"
 )
-test_schema_fetch_error_filepath = "fake/file/path.json"
+test_schema_fetch_error_filepath = "schemas/file/path.json"
