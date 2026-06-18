@@ -29,4 +29,3 @@ class TestFilePathFromBucketNotification:
 
         expected_name = "test_schema_success.json"
         assert get_file_path_from_bucket_notification(message_body) == expected_name
-

@@ -1,4 +1,4 @@
-from sds_common.models.schema_publish_errors import SchemaDuplicationError, SchemaPublishError
+from sds_common.models.schema_publish_errors import SchemaDuplicationError
 
 from app.services.schema_service import SchemaService
 from tests.conftest import MockPublisher, MockErrorNotificationProtocol
