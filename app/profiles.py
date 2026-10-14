@@ -1,13 +1,13 @@
 from lagom import Container, dependency_definition
 from sds_common.models.schema_publish_errors import SchemaPublishError
+from sds_common import SdsCommon
 
-from sds_common.publishers.gcs_schema_publisher import GcsSchemaPublisher
-from sds_common.publishers.github_schema_publisher import GithubSchemaPublisher
-from sds_common.services.pub_sub_service import PubSubService
 from sdx_base.services.storage import StorageService
 
 from app.broadcasters.fake_broadcaster import FakeBroadcaster
 from app.broadcasters.pubsub_broadcaster import PubsubBroadcaster
+from app.adapters.sds_common.error_notifications import PubSubErrorNotificationAdapter
+from app.adapters.sds_common.schema_publishers import GcsSchemaPublisherAdapter, GithubSchemaPublisherAdapter
 
 from app.interfaces.dataset_broadcast_interface import DatasetBroadcastInterface
 from app.interfaces.dataset_deletion_repository_interface import DatasetDeletionRepositoryInterface
@@ -69,6 +69,8 @@ def dev(container: Container):
 
 
 def production(container: Container):
+    common = SdsCommon()
+
     @dependency_definition(container)
     def build_bucket_dataset_source_repository() -> BucketDatasetSourceRepository:
         return BucketDatasetSourceRepository(
@@ -99,9 +101,9 @@ def production(container: Container):
     container[DatasetDeletionRepositoryInterface] = FirestoreDatasetDeletionRepository
     container[DatasetBroadcastInterface] = PubsubBroadcaster
     container[SchemaService] = SchemaService(
-        bucket_publisher=GcsSchemaPublisher(),
-        repository_publisher=GithubSchemaPublisher(),
-        error_notification_protocol=PubSubService(),
+        bucket_publisher=GcsSchemaPublisherAdapter(common),
+        repository_publisher=GithubSchemaPublisherAdapter(common),
+        error_notification_protocol=PubSubErrorNotificationAdapter(common),
     )
 
 
