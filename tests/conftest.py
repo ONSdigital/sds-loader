@@ -5,7 +5,7 @@ from unittest.mock import create_autospec
 import pytest
 from fastapi import FastAPI
 from polyfactory.pytest_plugin import register_fixture
-from sds_common.models.schema_publish_errors import SchemaPublishError
+from sds_common import SchemaPublishError
 from sdx_base.run import initialise
 from sdx_base.server.server import RouterConfig
 from sdx_base.server.tx_id import txid_not_applicable

@@ -1,5 +1,5 @@
 from sds_common import SdsCommon
-from sds_common.models.schema_publish_errors import SchemaPublishError
+from sds_common import SchemaPublishError
 
 from app.services.schema_service import ErrorNotificationProtocol
 

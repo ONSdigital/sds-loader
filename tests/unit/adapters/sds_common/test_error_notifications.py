@@ -1,6 +1,6 @@
 from unittest.mock import Mock
 
-from sds_common.models.schema_publish_errors import SchemaDuplicationError
+from sds_common import SchemaDuplicationError
 
 from app.adapters.sds_common.error_notifications import PubSubErrorNotificationAdapter
 

@@ -1,8 +1,7 @@
 import re
 from typing import Protocol
 
-from sds_common import CONFIG
-from sds_common.models.schema_publish_errors import SchemaPublishError
+from sds_common import CONFIG, SchemaPublishError
 
 from app import get_logger
 from app.exceptions.schema_source_invalid_exception import SchemaSourceInvalidException
