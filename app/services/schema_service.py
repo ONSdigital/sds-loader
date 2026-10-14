@@ -1,7 +1,7 @@
 import re
 from typing import Protocol
 
-from sds_common.config.config import CONFIG
+from sds_common import CONFIG
 from sds_common.models.schema_publish_errors import SchemaPublishError
 
 from app import get_logger

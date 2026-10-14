@@ -1,6 +1,6 @@
 from unittest import TestCase
 import pytest
-from sds_common.config.config import CONFIG
+from sds_common import CONFIG
 from sds_common.enums.buckets import Bucket
 from sds_common.repositories.bucket_loader import BucketLoader
 from sds_common.services.file_service import FileService
