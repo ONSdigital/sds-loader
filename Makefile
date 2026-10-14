@@ -17,7 +17,7 @@ format:
 .PHONY: test
 test:
 	@echo "Running Local Tests..."
-	uv run --dev pytest -v --disable-warnings tests/
+	SDS_URL=http://www.example.com SDS_LOADER_URL=https://www.example.com uv run --dev pytest -v --disable-warnings tests/
 
 
 .PHONY: install
