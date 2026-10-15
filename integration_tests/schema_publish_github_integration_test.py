@@ -1,7 +1,12 @@
 from unittest import TestCase
 
 import pytest
-from sds_common import CONFIG
+from google.cloud.pubsub_v1 import PublisherClient, SubscriberClient
+from sds_common import CONFIG, PubSubHelper
+from sds_common.test_helpers.common_test_data import (
+    test_schema_subscriber_id_fail,
+    test_schema_subscriber_id_success,
+)
 from sds_common.test_helpers.integration_helpers import (
     cleanup,
     inject_wait_time,
@@ -9,11 +14,6 @@ from sds_common.test_helpers.integration_helpers import (
     pubsub_purge_messages,
     pubsub_setup,
     pubsub_teardown,
-)
-from sds_common.test_helpers.pub_sub_helper import PubSubHelper
-from sds_common.test_helpers.common_test_data import (
-    test_schema_subscriber_id_success,
-    test_schema_subscriber_id_fail,
 )
 
 from integration_tests.test_data.test_filepaths import (
@@ -30,19 +30,24 @@ class SchemaPublishIntegrationTest(TestCase):
     @classmethod
     def setup_class(cls):
         cleanup()
-        cls.schema_queue_pubsub_helper = PubSubHelper(CONFIG.PUBLISH_SCHEMA_QUEUE_TOPIC_ID)
-        cls.schema_success_pubsub_helper = PubSubHelper(CONFIG.PUBLISH_SCHEMA_SUCCESS_TOPIC_ID)
-        cls.schema_error_pubsub_helper = PubSubHelper(CONFIG.PUBLISH_SCHEMA_ERROR_TOPIC_ID)
-        pubsub_setup(cls.schema_success_pubsub_helper, test_schema_subscriber_id_success)
-        pubsub_setup(cls.schema_error_pubsub_helper, test_schema_subscriber_id_fail)
+        cls.schema_queue_pubsub_helper = PubSubHelper(
+            CONFIG.PUBLISH_SCHEMA_QUEUE_TOPIC_ID,
+            SubscriberClient(),
+            PublisherClient(),
+            CONFIG.PROJECT_ID,
+        )
+        pubsub_setup(test_schema_subscriber_id_success, CONFIG.PUBLISH_SCHEMA_SUCCESS_TOPIC_ID)
+        pubsub_setup(test_schema_subscriber_id_fail, CONFIG.PUBLISH_SCHEMA_ERROR_TOPIC_ID)
         inject_wait_time(10)  # Inject wait time to allow resources properly set up
 
     @classmethod
     def teardown_class(cls) -> None:
         cleanup()
         inject_wait_time(3)  # Inject wait time to allow all message to be processed
-        pubsub_purge_messages(cls.schema_success_pubsub_helper, test_schema_subscriber_id_success)
-        pubsub_teardown(cls.schema_success_pubsub_helper, test_schema_subscriber_id_success)
+        pubsub_purge_messages(test_schema_subscriber_id_success, CONFIG.PUBLISH_SCHEMA_SUCCESS_TOPIC_ID)
+        pubsub_teardown(test_schema_subscriber_id_success, CONFIG.PUBLISH_SCHEMA_SUCCESS_TOPIC_ID)
+        pubsub_purge_messages(test_schema_subscriber_id_fail, CONFIG.PUBLISH_SCHEMA_ERROR_TOPIC_ID)
+        pubsub_teardown(test_schema_subscriber_id_fail, CONFIG.PUBLISH_SCHEMA_ERROR_TOPIC_ID)
 
     @pytest.mark.order(1)
     def test_publish_schema_success(self):
@@ -56,7 +61,7 @@ class SchemaPublishIntegrationTest(TestCase):
 
         self.schema_queue_pubsub_helper.publish_message("schemas/test_schemas/test_schema_success.json")
 
-        messages = poll_subscription(self.schema_success_pubsub_helper, test_schema_subscriber_id_success)
+        messages = poll_subscription(test_schema_subscriber_id_success, CONFIG.PUBLISH_SCHEMA_SUCCESS_TOPIC_ID)
 
         assert messages is not None
         for message in messages:
@@ -73,7 +78,7 @@ class SchemaPublishIntegrationTest(TestCase):
         """
         self.schema_queue_pubsub_helper.publish_message(test_schema_success_filepath)
 
-        messages = poll_subscription(self.schema_error_pubsub_helper, test_schema_subscriber_id_fail)
+        messages = poll_subscription(test_schema_subscriber_id_fail, CONFIG.PUBLISH_SCHEMA_ERROR_TOPIC_ID)
 
         assert messages is not None
         for message in messages:
@@ -91,7 +96,7 @@ class SchemaPublishIntegrationTest(TestCase):
         """
         self.schema_queue_pubsub_helper.publish_message(test_schema_version_mismatch_filepath)
 
-        messages = poll_subscription(self.schema_error_pubsub_helper, test_schema_subscriber_id_fail)
+        messages = poll_subscription(test_schema_subscriber_id_fail, CONFIG.PUBLISH_SCHEMA_ERROR_TOPIC_ID)
 
         assert messages is not None
         for message in messages:
@@ -109,7 +114,7 @@ class SchemaPublishIntegrationTest(TestCase):
         """
         self.schema_queue_pubsub_helper.publish_message(test_schema_survey_id_error_filepath)
 
-        messages = poll_subscription(self.schema_error_pubsub_helper, test_schema_subscriber_id_fail)
+        messages = poll_subscription(test_schema_subscriber_id_fail, CONFIG.PUBLISH_SCHEMA_ERROR_TOPIC_ID)
 
         assert messages is not None
         for message in messages:
@@ -127,7 +132,7 @@ class SchemaPublishIntegrationTest(TestCase):
         """
         self.schema_queue_pubsub_helper.publish_message(test_schema_version_error_filepath)
 
-        messages = poll_subscription(self.schema_error_pubsub_helper, test_schema_subscriber_id_fail)
+        messages = poll_subscription(test_schema_subscriber_id_fail, CONFIG.PUBLISH_SCHEMA_ERROR_TOPIC_ID)
 
         assert messages is not None
         for message in messages:
@@ -145,7 +150,7 @@ class SchemaPublishIntegrationTest(TestCase):
         """
         self.schema_queue_pubsub_helper.publish_message(test_schema_json_decode_error_filepath)
 
-        messages = poll_subscription(self.schema_error_pubsub_helper, test_schema_subscriber_id_fail)
+        messages = poll_subscription(test_schema_subscriber_id_fail, CONFIG.PUBLISH_SCHEMA_ERROR_TOPIC_ID)
 
         assert messages is not None
         for message in messages:
@@ -163,7 +168,7 @@ class SchemaPublishIntegrationTest(TestCase):
         """
         self.schema_queue_pubsub_helper.publish_message(test_schema_fetch_error_filepath)
 
-        messages = poll_subscription(self.schema_error_pubsub_helper, test_schema_subscriber_id_fail)
+        messages = poll_subscription(test_schema_subscriber_id_fail, CONFIG.PUBLISH_SCHEMA_ERROR_TOPIC_ID)
 
         assert messages is not None
         for message in messages:
