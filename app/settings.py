@@ -35,7 +35,7 @@ class Settings(AppSettings):
     autodelete_dataset: bool = True
     retain_old_datasets: bool = True
     dataset_bucket_name: str
-    firestore_database: str
+    firestore_db_name: str
     publish_dataset_topic_id: str
 
 
