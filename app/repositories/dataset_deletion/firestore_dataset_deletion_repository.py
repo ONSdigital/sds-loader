@@ -1,5 +1,4 @@
 from datetime import datetime, timezone
-
 from typing import Protocol
 
 from google.cloud import firestore

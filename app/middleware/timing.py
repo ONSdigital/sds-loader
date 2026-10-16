@@ -1,7 +1,7 @@
 import time
 
-from starlette.requests import Request
 from starlette.middleware.base import BaseHTTPMiddleware
+from starlette.requests import Request
 
 from app import get_logger
 

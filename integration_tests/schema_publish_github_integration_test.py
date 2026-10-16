@@ -2,18 +2,19 @@ from unittest import TestCase
 
 import pytest
 from google.cloud.pubsub_v1 import PublisherClient, SubscriberClient
-from sds_common import CONFIG, PubSubHelper
-from sds_common.test_helpers.common_test_data import (
-    test_schema_subscriber_id_fail,
-    test_schema_subscriber_id_success,
-)
-from sds_common.test_helpers.integration_helpers import (
+from sds_common import (
+    CONFIG,
+    PubSubHelper,
     cleanup,
     inject_wait_time,
     poll_subscription,
     pubsub_purge_messages,
     pubsub_setup,
     pubsub_teardown,
+)
+from sds_common.test_helpers.common_test_data import (
+    test_schema_subscriber_id_fail,
+    test_schema_subscriber_id_success,
 )
 
 from integration_tests.test_data.test_filepaths import (

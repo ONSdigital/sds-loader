@@ -8,10 +8,10 @@ dependencies = [
     "sds-common==2.1.0b4",
     "lagom>=2.7.7",
     "polyfactory>=3.3.0",
-    "pydantic-settings>=2.13.1",
+    "pydantic-settings==2.16.0",
     "fastapi>=0.119.0",
-    "starlette>=0.48.0",
-    "requests>=2.32.3",
+    "starlette==1.8.0",
+    "requests==2.34.2",
 ]
 
 [dependency-groups]
@@ -19,6 +19,7 @@ dev = [
     "pytest>=8.3.5",
     "pytest-cov>=6.1.1",
     "pytest-xdist>=3.6.1",
+    "pytest-order>=1.5.0",
 ]
 
 lint = [
